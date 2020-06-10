@@ -9,9 +9,9 @@ using NumSharp;
 
 namespace DicomChopper
 {
-    public class ContourTxtMaker
+    public class ContourPlotting
     {
-        public static void ContourPlotter(List<double[,]> contours)
+        public static void Plot(List<double[,]> contours)
         {
             string path = Directory.GetCurrentDirectory();
 
@@ -44,7 +44,7 @@ namespace DicomChopper
             GnuPlot.SPlot("contours.txt");
             Console.ReadLine();
         }
-        public static void ContourPlotter(List<List<double[,]>> contours)
+        public static void Plot(List<List<double[,]>> contours)
         {
             string path = Directory.GetCurrentDirectory();
 
