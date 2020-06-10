@@ -155,17 +155,17 @@ namespace DicomChopper.DICOMParsing
             //double[][] tempContours = new double[rawContours.Count][];
             double[,] finalContours;
             //Make a list which will hold the different contours.
-            List<NumSharp.NDArray> contours = new List<NumSharp.NDArray>();
+            List<double[,]> contours = new List<double[,]>();
             //each element is an array holding the contour data for each contour of the specified organ
             for (i = 0; i < rawContours.Count; i++)
             {
                 //initialize size of array, then load in contour data.
-                NDArray tempContours = rawContours[i].Get<double[]>(DicomTag.ContourData);
+                double[] tempContours = rawContours[i].Get<double[]>(DicomTag.ContourData);
 
                 //Now convert from 1 column to 3 for x,y,z:
                 int row = 0;
-                finalContours = new double[tempContours.size / 3, 3];
-                for (int j = 0; j < tempContours.size; j++)
+                finalContours = new double[tempContours.Length / 3, 3];
+                for (int j = 0; j < tempContours.Length; j++)
                 {
                     int column = j % 3;
 
@@ -191,7 +191,7 @@ namespace DicomChopper.DICOMParsing
             Console.WriteLine("Successfully retrieved contours.");
 
             //convert back to a double array.
-            return DataConversion.NumSharpToArray(contours);
+            return contours;
 
 
         }

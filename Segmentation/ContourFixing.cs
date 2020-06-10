@@ -4,13 +4,79 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
-using NumSharp;
+using DicomChopper.Geometry;
 using Dicom.IO.Buffer;
-
+using NumSharp;
 namespace DicomChopper.Segmentation
 {
     class ContourFixing
     {
+        public static List<double[,]> IslandRemover(List<double[,]> contours)
+        //This function will remove ROI contour islands if they exist.
+        //Basic idea is to search through contour points, and if there is a large
+        //variation in x or y from one contour to the next, then remove the contour which is 
+        //furthest from the mean.
+        {
+            Console.WriteLine("Checking for islands and removing");
+            int numIslands = 0;
+            int numContours = contours.Count;
+            double meanX = 0;
+            double meanY = 0;
+            int maxSep = 30; //island cutoff criteria (mm), difference in means between adjacent contours (X,y)
+            List<double> means = new List<double>();
+            int numPoints = 0; //divide by to get mean.
+
+
+            //first get the mean x,y,z for the whole ROI:
+            meanX = Stats.SliceMean(0, contours);
+            meanY = Stats.SliceMean(1, contours);
+            means.Add(meanX);
+            means.Add(meanY);
+
+
+            //Now go through and check for large variation between adjacent contours: 
+            //Currently using a difference of 2cm means between adjacent contours to flag an island
+            for (int i = 0; i < numContours - 2; i++)
+            {
+                //Another for loop to check both x and y columns:
+                for (int col = 0; col < 2; col++)
+                {
+                    double mean1 = Stats.SliceMean(col,contours[i]);
+                    double mean2 = Stats.SliceMean(col, contours[i + 1]);
+                    if (Math.Abs(mean1 - mean2) > maxSep)
+                    {
+                        numIslands++;
+                        //Check which one is furthest from the ROI mean.
+                        double dif1 = mean1 - means[col];
+                        double dif2 = mean2 - means[col];
+
+                        //remove the one furthest from the mean.
+                        if (dif1 > dif2)    //remove contours[i]
+                        {
+                            contours.RemoveAt(i);
+                        }
+                        else     //Remove contours[i+1]
+                        {
+                            contours.RemoveAt(i + 1);
+                        }
+                    }
+                }
+            }
+            if (numIslands == 0)
+            {
+                Console.WriteLine("No islands found");
+            }
+            else if (numIslands == 1)
+            {
+                Console.WriteLine(numIslands + " island detected and removed");
+            }
+            else
+            {
+                Console.WriteLine(numIslands + " islands detected and removed");
+            }
+            return contours;
+        }
+
         public static List<NumSharp.NDArray> IslandRemover(List<NumSharp.NDArray> contours)
         //This function will remove ROI contour islands if they exist.
         //Basic idea is to search through contour points, and if there is a large

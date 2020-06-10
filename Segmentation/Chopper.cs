@@ -5,7 +5,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using DicomChopper.ContourGeometry;
+using DicomChopper.Geom;
 using DicomChopper.Segmentation;
 using ILNumerics.Drawing;
 
@@ -154,7 +154,7 @@ namespace DicomChopper.Segmentation
             {
                 if (contours[i].Length != 0)
                 {
-                    area += Geometry.Area(contours[i]);
+                    area += Geom.Geometry.Area(contours[i]);
                 }
             }
             for (int cut = 0; cut < numCuts; cut++)
@@ -208,7 +208,7 @@ namespace DicomChopper.Segmentation
                             if (cutContours.Count != 0)
                             {
                                 cutContours = ContourFixing.ClosedLooper(cutContours);
-                                newArea += Geometry.Area(cutContours);
+                                newArea += Geom.Geometry.Area(cutContours);
                             }
                         }
                     }
@@ -413,7 +413,7 @@ namespace DicomChopper.Segmentation
             {
                 if (contours[i].Length != 0)
                 {
-                    area += Geometry.Area(contours[i]);
+                    area += Geom.Geometry.Area(contours[i]);
                 }
 
             }
@@ -468,7 +468,7 @@ namespace DicomChopper.Segmentation
                             if (cutContours.Count != 0)
                             {
                                 cutContours = ContourFixing.ClosedLooper(cutContours);
-                                newArea += Geometry.Area(cutContours);
+                                newArea += Geom.Geometry.Area(cutContours);
                             }
                         }
                     }
@@ -585,7 +585,7 @@ namespace DicomChopper.Segmentation
 
             for (int i = 0; i < numConts; i++) //right now using area of every contour but last... should last be included? 
             {
-                contourAreas[i] = Geometry.Area(contours[i]);
+                contourAreas[i] = Geom.Geometry.Area(contours[i]);
                 if (i != numConts-1)
                 {
                     totalVolume += contourAreas[i] * deltaZ;
