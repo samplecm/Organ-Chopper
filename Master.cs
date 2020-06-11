@@ -40,7 +40,7 @@ namespace DicomChopper
             Console.WriteLine("Would you like to plot the chopped up ROI? (y/n)");
             string input = Console.ReadLine();
             input.ToLower();
-            if ((input == "y") || (input == "n"))
+            if ((input == "y") || (input == "yes"))
             {
                 ContourPlotting.Plot(contours);
             }
