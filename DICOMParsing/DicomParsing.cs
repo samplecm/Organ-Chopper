@@ -18,7 +18,7 @@ namespace DicomChopper.DICOMParsing
         public static string ROIName;
 
         //Method for finding the index of the parotid in the list of organs.
-        public static List<double[,]> FindROI(Dicom.DicomDataset structFile, string containsName) //Change from void after!!!
+        public static List<double[,]> FindROI(DicomDataset structFile, string containsName) //Change from void after!!!
         {
             //First make an array that will hold potential indices. Make it size 10 for redundancy
             int[] indices = new int[10];

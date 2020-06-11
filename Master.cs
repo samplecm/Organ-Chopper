@@ -6,10 +6,7 @@ using System.Threading.Tasks;
 using Dicom;
 using DicomChopper.DICOMParsing;
 using DicomChopper.Segmentation;
-using DicomChopper.DataConverting;
-using NumSharp;
-using MatLib;
-
+using DicomChopper.Doses;
 
 
 namespace DicomChopper
@@ -18,13 +15,13 @@ namespace DicomChopper
     {
         static void Main(string[] args)
         {
+            string structPath = @"../../../ExportedPlansEclipse/spstudy_test_002/0Gy/RS.dcm";
+            string dosePath = @"../../../ExportedPlansEclipse/spstudy_test_002/0Gy/RD.dcm";
             //define the number of slices desired in the x,y,z directions:
             int numCutsX = 2;
             int numCutY = 1;
             int numCutsZ = 2;
             //First load the RT struct dicom file.
-            //
-            string structPath = @"../../../ExportedPlansEclipse/spstudy_test_002/0Gy/RS.dcm";
             Console.WriteLine("Reading Dicom Struct file...");
             var structFile = DicomFile.Open(structPath).Dataset;
 
@@ -32,15 +29,24 @@ namespace DicomChopper
             string patientID = structFile.GetString(DicomTag.PatientID);
 
             //Get the desired ROI, and close all contours
-            List<double[,]> contoursTemp = DicomParsing.FindROI(structFile, "paro", true,true);
+            List<double[,]> contoursTemp = DicomParsing.FindROI(structFile, "paro", true, true);
             string organName = DicomParsing.ROIName;
 
             //Chop it!
-            List<List<double[,]>> contours = new List<List<double[,]>>();    
+            List<List<double[,]>> contours = new List<List<double[,]>>();
             contours = Chopper.Chop(contoursTemp, numCutsX, numCutY, numCutsZ);
 
             //Plot it!
-            ContourPlotting.Plot(contours);
+            Console.WriteLine("Would you like to plot the chopped up ROI? (y/n)");
+            string input = Console.ReadLine();
+            input.ToLower();
+            if ((input == "y") || (input == "n"))
+            {
+                ContourPlotting.Plot(contours);
+            }
+            //Now load a dose file.
+            DicomDose.MeanDoses(contours, dosePath, patientID);
+
 
             Console.ReadLine();
         }
