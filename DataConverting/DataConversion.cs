@@ -37,5 +37,14 @@ namespace DicomChopper.DataConverting
             }
             return newContours;
         }
+        public static double[] ReverseArray(double[] array)
+        {
+            double[] newArray = new double[array.Length];
+            for (int i = 0; i < array.Length; i++)
+            {
+                newArray[i] = array[array.Length - 1 - i];
+            }
+            return newArray;
+        }
     }
 }

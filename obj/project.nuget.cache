@@ -1,0 +1,32 @@
+{
+  "version": 2,
+  "dgSpecHash": "b2FrGOu/h2jZH4Qg4kfW6GLGQ5587JgV8Apy0u0NSA2kzONGyG/1Im7t3+SFSTAjDa6N0FidUqnv+2DNo+6zXA==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\sampl\\Documents\\UBC\\Head and Neck Radiotherapy\\DicomChopper\\DicomChopper.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\sampl\\.nuget\\packages\\evildicom\\2.0.6.5\\evildicom.2.0.6.5.nupkg.sha512",
+    "C:\\Users\\sampl\\.nuget\\packages\\fo-dicom\\4.0.5\\fo-dicom.4.0.5.nupkg.sha512",
+    "C:\\Users\\sampl\\.nuget\\packages\\fo-dicom.desktop\\4.0.5\\fo-dicom.desktop.4.0.5.nupkg.sha512",
+    "C:\\Users\\sampl\\.nuget\\packages\\gnuplotcsharp\\1.0.0.1\\gnuplotcsharp.1.0.0.1.nupkg.sha512",
+    "C:\\Users\\sampl\\.nuget\\packages\\ilnumerics\\4.8.0\\ilnumerics.4.8.0.nupkg.sha512",
+    "C:\\Users\\sampl\\.nuget\\packages\\ilnumerics.native\\3.2.0\\ilnumerics.native.3.2.0.nupkg.sha512",
+    "C:\\Users\\sampl\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\1.1.0\\microsoft.bcl.asyncinterfaces.1.1.0.nupkg.sha512",
+    "C:\\Users\\sampl\\.nuget\\packages\\microsoft.extensions.configuration\\3.1.2\\microsoft.extensions.configuration.3.1.2.nupkg.sha512",
+    "C:\\Users\\sampl\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\3.1.2\\microsoft.extensions.configuration.abstractions.3.1.2.nupkg.sha512",
+    "C:\\Users\\sampl\\.nuget\\packages\\microsoft.extensions.configuration.binder\\3.1.2\\microsoft.extensions.configuration.binder.3.1.2.nupkg.sha512",
+    "C:\\Users\\sampl\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\3.1.2\\microsoft.extensions.dependencyinjection.3.1.2.nupkg.sha512",
+    "C:\\Users\\sampl\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\3.1.2\\microsoft.extensions.dependencyinjection.abstractions.3.1.2.nupkg.sha512",
+    "C:\\Users\\sampl\\.nuget\\packages\\microsoft.extensions.logging\\3.1.2\\microsoft.extensions.logging.3.1.2.nupkg.sha512",
+    "C:\\Users\\sampl\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\3.1.2\\microsoft.extensions.logging.abstractions.3.1.2.nupkg.sha512",
+    "C:\\Users\\sampl\\.nuget\\packages\\microsoft.extensions.options\\3.1.2\\microsoft.extensions.options.3.1.2.nupkg.sha512",
+    "C:\\Users\\sampl\\.nuget\\packages\\microsoft.extensions.primitives\\3.1.2\\microsoft.extensions.primitives.3.1.2.nupkg.sha512",
+    "C:\\Users\\sampl\\.nuget\\packages\\numsharp\\0.20.5\\numsharp.0.20.5.nupkg.sha512",
+    "C:\\Users\\sampl\\.nuget\\packages\\system.buffers\\4.4.0\\system.buffers.4.4.0.nupkg.sha512",
+    "C:\\Users\\sampl\\.nuget\\packages\\system.componentmodel.annotations\\4.7.0\\system.componentmodel.annotations.4.7.0.nupkg.sha512",
+    "C:\\Users\\sampl\\.nuget\\packages\\system.memory\\4.5.3\\system.memory.4.5.3.nupkg.sha512",
+    "C:\\Users\\sampl\\.nuget\\packages\\system.numerics.vectors\\4.4.0\\system.numerics.vectors.4.4.0.nupkg.sha512",
+    "C:\\Users\\sampl\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\4.7.0\\system.runtime.compilerservices.unsafe.4.7.0.nupkg.sha512",
+    "C:\\Users\\sampl\\.nuget\\packages\\system.threading.tasks.extensions\\4.5.2\\system.threading.tasks.extensions.4.5.2.nupkg.sha512"
+  ],
+  "logs": []
+}

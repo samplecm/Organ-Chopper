@@ -1,0 +1,73 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\sampl\\Documents\\UBC\\Head and Neck Radiotherapy\\DicomChopper\\DicomChopper.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\sampl\\Documents\\UBC\\Head and Neck Radiotherapy\\DicomChopper\\DicomChopper.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\sampl\\Documents\\UBC\\Head and Neck Radiotherapy\\DicomChopper\\DicomChopper.csproj",
+        "projectName": "DicomChopper",
+        "projectPath": "C:\\Users\\sampl\\Documents\\UBC\\Head and Neck Radiotherapy\\DicomChopper\\DicomChopper.csproj",
+        "packagesPath": "C:\\Users\\sampl\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\sampl\\Documents\\UBC\\Head and Neck Radiotherapy\\DicomChopper\\obj\\",
+        "projectStyle": "PackageReference",
+        "skipContentFileWrite": true,
+        "configFilePaths": [
+          "C:\\Users\\sampl\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net472"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net472": {
+            "projectReferences": {}
+          }
+        }
+      },
+      "frameworks": {
+        "net472": {
+          "dependencies": {
+            "EvilDICOM": {
+              "target": "Package",
+              "version": "[2.0.6.5, )"
+            },
+            "GnuplotCSharp": {
+              "target": "Package",
+              "version": "[1.0.0.1, )"
+            },
+            "ILNumerics": {
+              "target": "Package",
+              "version": "[4.8.0, )"
+            },
+            "NumSharp": {
+              "target": "Package",
+              "version": "[0.20.5, )"
+            },
+            "fo-dicom": {
+              "target": "Package",
+              "version": "[4.0.5, )"
+            }
+          }
+        }
+      },
+      "runtimes": {
+        "win": {
+          "#import": []
+        },
+        "win-x64": {
+          "#import": []
+        },
+        "win-x86": {
+          "#import": []
+        }
+      }
+    }
+  }
+}
