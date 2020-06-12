@@ -21,6 +21,8 @@ namespace DicomChopper
             int numCutsX = 2;
             int numCutY = 1;
             int numCutsZ = 2;
+            int SSFactor = 4; //supersampling factors
+            int SSFactorZ = 1;
             //First load the RT struct dicom file.
             Console.WriteLine("Reading Dicom Struct file...");
             var structFile = DicomFile.Open(structPath).Dataset;
@@ -34,7 +36,7 @@ namespace DicomChopper
 
             //Chop it!
             List<List<double[,]>> contours = new List<List<double[,]>>();
-            contours = Chopper.Chop(contoursTemp, numCutsX, numCutY, numCutsZ);
+            contours = Chopper.Chop(contoursTemp, numCutsX, numCutY, numCutsZ, organName);
 
             //Plot it!
             Console.WriteLine("Would you like to plot the chopped up ROI? (y/n)");
@@ -45,7 +47,7 @@ namespace DicomChopper
                 ContourPlotting.Plot(contours);
             }
             //Now load a dose file.
-            DicomDose.MeanDoses(contours, dosePath, patientID);
+            DicomDose.MeanDoses(contours, dosePath, patientID, SSFactor, SSFactorZ);
 
 
             Console.ReadLine();

@@ -33,5 +33,10 @@ namespace DicomChopper.Geometry
             }
             return totalSum / numPoints;
         }
+        public static int[] LowestValIndices(double[,] a, int dim, int numberPoints)
+            //returns a list of indices corresponding to the lowest values within a list at a certain dimension.
+        {
+            
+        }
     }
 }

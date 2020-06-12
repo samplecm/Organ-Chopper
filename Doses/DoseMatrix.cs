@@ -21,6 +21,9 @@ namespace DicomChopper.Doses
             this.yValues = DicomDose.GetYValues(doseData);
             this.xValues = DicomDose.GetXValues(doseData);
         }
+        public DoseMatrix()
+        {
+        }
 
     }
 }

@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using DicomChopper.Geom;
+using DicomChopper.Geometry;
 using DicomChopper.Segmentation;
 using ILNumerics.Drawing;
 
@@ -13,7 +14,7 @@ namespace DicomChopper.Segmentation
 {
     public class Chopper
     {
-        public static List<List<double[,]>> Chop(List<double[,]> contoursTemp, int numCutsX, int numCutsY, int numCutsZ)
+        public static List<List<double[,]>> Chop(List<double[,]> contoursTemp, int numCutsX, int numCutsY, int numCutsZ, string organName)
         {
 
             //Now make the axial cuts first: 
@@ -64,12 +65,38 @@ namespace DicomChopper.Segmentation
             {
                 contours = contoursY;
             }
+            contours = ReOrder(contours, organName);
             return contours;
 
 
 
         }
-
+        public static List<List<double[,]>> ReOrder(List<List<double[,]>> contours, string organName)
+        {
+            //Reorder the organ from inferior --> superior, medial --> lateral, anterior --> posterior,
+            //make 2D array which holds the mean x,y,z for each contour.
+            double[,] means = new double[contours.Count,3];
+            for (int i = 0; i < contours.Count; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    means[i, j] = Stats.SliceMean(j, contours[i]);
+                }
+            }
+            List<List<double[,]>> finalContours = new List<List<double[,]>>();
+            if (organName.ToLower().Contains('l'))    //if the left (medial --> lateral is increasing x.
+            {
+                while (contours.Count != 0)
+                {
+                    List<List<double[,]>> smallestY = new List<List<double[,]>>();
+                }
+            }
+            else
+            {
+      
+            }
+            return finalContours;
+        }
         public static List<List<double[,]>> XChop(List<double[,]> contours, int numCutsX)
         {
             double[] xCuts = BestCutX(contours, numCutsX, 0.0001);
