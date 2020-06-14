@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 using Dicom.Imaging.Render;
 using Dicom;
 using Dicom.Imaging;
 using DicomChopper.DataConverting;
+using DicomChopper.Segmentation;
+using DicomChopper.Geom;
 
 namespace DicomChopper.Doses
 {
@@ -40,6 +40,85 @@ namespace DicomChopper.Doses
             //Get the range of the dose Matrix that surrounds the organ of interest.
             double[,,] organDoseBounds = OrganDoseBounds(contours, dose);
             DoseMatrix doseSS = DoseMatrixSuperSampler(dose, organDoseBounds, SSFactor, SSFactorZ);
+
+            //Get file name
+            Console.WriteLine("Please enter a name for the Mean Dose file.");
+            string path = Directory.GetCurrentDirectory();
+            string nameInput = Console.ReadLine();
+            string fileName = "../../MeanDoses/" + path + nameInput;
+
+            //Find mean doses:
+            double[,] meanDoses = new double[contours.Count, 2];    //second column for # of dose voxels in region.
+            double x, y, z, minY, maxY, minX, maxX;
+            double[,] polygon;
+            double[] point = new double[3]; //the interpolated contour of the dose voxel z position.
+            int numIn = 0;
+            for (int i = 0; i < doseSS.Matrix.GetLength(0); i++)
+            {
+                for (int j = 0; j < doseSS.Matrix.GetLength(1); j++)
+                {
+                    for (int k = 0; k < doseSS.Matrix.GetLength(2); k++)
+                    {
+                        //get coordinates for the dose voxel
+                        x = doseSS.xValues[j];
+                        y = doseSS.yValues[i];
+                        z = doseSS.zValues[k];
+                        
+                        //Determine potential subregions for the voxel:
+                        for (int region = 0; region < contours.Count; region++)
+                        {
+                            for (int cont = 0; cont < contours[region].Count - 1; cont++)
+                            {
+                                if ((contours[region][cont][0, 2] <= z)&&(contours[region][cont+1][0, 2] >= z))    //Is this point within z range of this region?
+                                {
+                                    //is point within max bounds of the region? 
+                                    for (int idx = cont; idx <= cont + 1; idx++)    //for both these contours that z is between 
+                                    {
+                                        minX = Stats.min(contours[region][idx], 0);
+                                        minY = Stats.min(contours[region][idx], 1);
+                                        maxX = Stats.max(contours[region][idx], 0);
+                                        maxY = Stats.max(contours[region][idx], 1);
+                                        if ((x > minX) && (x < maxX) && (y > minY) && (y < maxY))
+                                        {
+                                            //Now interpolate a contour between the two.
+                                            polygon = Geometry.InterpBetweenContours(contours[region][cont], contours[region][cont + 1], z);
+                                            //Now point in polygon.
+                                            point[0] = x;
+                                            point[1] = y;
+                                            point[2] = z;
+                                            if (Geometry.PointInPolygon(polygon, point)){
+                                                meanDoses[region, 0] += doseSS.Matrix[i, j, k];
+                                                meanDoses[region, 1]++;
+                                                numIn++;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+
+                    }
+                }
+            }
+            for (int i = 0; i < meanDoses.GetLength(0); i++)
+            {
+                meanDoses[i, 0] /= meanDoses[i, 1];
+            }
+
+
+
+            using (StreamWriter outputFile = new StreamWriter(Path.Combine(path, "contours.txt")))
+            {
+
+                for (int i = 0; i < contours.Count; i++)
+                {
+
+                    outputFile.WriteLine(Environment.NewLine);
+                }
+            }
+            GnuPlot.SPlot("contours.txt");
+            Console.ReadLine();
 
 
             //Now check the dose in each subregion.

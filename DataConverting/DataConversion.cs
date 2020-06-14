@@ -46,5 +46,14 @@ namespace DicomChopper.DataConverting
             }
             return newArray;
         }
+        public static int[] ReverseArray(int[] array)
+        {
+            int[] newArray = new int[array.Length];
+            for (int i = 0; i < array.Length; i++)
+            {
+                newArray[i] = array[array.Length - 1 - i];
+            }
+            return newArray;
+        }
     }
 }

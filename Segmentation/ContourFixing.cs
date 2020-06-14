@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
-using DicomChopper.Geometry;
+using DicomChopper.Geom;
 using Dicom.IO.Buffer;
 using NumSharp;
 namespace DicomChopper.Segmentation

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
-using NumSharp;
 
 
 namespace DicomChopper
@@ -14,7 +13,6 @@ namespace DicomChopper
         public static void Plot(List<double[,]> contours)
         {
             string path = Directory.GetCurrentDirectory();
-
             using (StreamWriter outputFile = new StreamWriter(Path.Combine(path, "contours.txt")))
             {
                 
@@ -51,7 +49,7 @@ namespace DicomChopper
             using (StreamWriter outputFile = new StreamWriter(Path.Combine(path, "contours.txt")))
             {
                for (int cont = 0; cont < contours.Count; cont++)
-               // for (int cont = 21; cont < 24; cont++)
+               //for (int cont = 9; cont < 12; cont++)
                 {
                     for (int i = 0; i < contours[cont].Count; i++)
                     {

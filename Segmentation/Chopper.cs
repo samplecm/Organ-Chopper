@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using DicomChopper.Geom;
-using DicomChopper.Geometry;
 using DicomChopper.Segmentation;
 using ILNumerics.Drawing;
 
@@ -65,37 +64,123 @@ namespace DicomChopper.Segmentation
             {
                 contours = contoursY;
             }
-            contours = ReOrder(contours, organName);
+            contours = ReOrder(contours, organName, numCutsX, numCutsY, numCutsZ);
             return contours;
 
 
 
         }
-        public static List<List<double[,]>> ReOrder(List<List<double[,]>> contours, string organName)
+        public static List<List<double[,]>> ReOrder(List<List<double[,]>> contours, string organName, int numCutsX, int numCutsY, int numCutsZ)
         {
             //Reorder the organ from inferior --> superior, medial --> lateral, anterior --> posterior,
             //make 2D array which holds the mean x,y,z for each contour.
-            double[,] means = new double[contours.Count,3];
-            for (int i = 0; i < contours.Count; i++)
-            {
-                for (int j = 0; j < 3; j++)
-                {
-                    means[i, j] = Stats.SliceMean(j, contours[i]);
-                }
-            }
+            int j = 0;
             List<List<double[,]>> finalContours = new List<List<double[,]>>();
             if (organName.ToLower().Contains('l'))    //if the left (medial --> lateral is increasing x.
             {
-                while (contours.Count != 0)
+                for (int i = 0; i < contours.Count; i++)
                 {
-                    List<List<double[,]>> smallestY = new List<List<double[,]>>();
+                    if ((i % (numCutsZ + 1) == 0) && (i != 0))
+                    {
+                        j += 1;
+                    }
+                    int index = j % ((numCutsX + 1) * (numCutsY + 1) * (numCutsZ + 1));
+                    finalContours.Add(contours[index]);
+                    j += (numCutsX + 1) * (numCutsY + 1);
                 }
             }
             else
             {
-      
+                j =numCutsX;
+                for (int i = 0; i < contours.Count; i++)
+                {
+                    if (j >= (numCutsX +1)*(numCutsY + 1) * (numCutsZ + 1))
+                    {
+                        j -= (numCutsX + 1) * (numCutsY + 1) * (numCutsZ + 1) + 1;      
+                        if (j == -1)
+                        {
+                            j += (numCutsX + 1) * (numCutsY + 1);
+                        }
+                    }
+
+                    finalContours.Add(contours[j]);
+                    j += (numCutsX + 1) * (numCutsY + 1);
+
+                }
             }
             return finalContours;
+            //List<List<double[,]>> smallestY = new List<List<double[,]>>();
+            //List<List<double[,]>> smallestX = new List<List<double[,]>>();
+            //double[,] means;
+            //double[,] meansY;  //means after taking a chunk of smallest y
+            //double[,] meansZ;
+            //if (organName.ToLower().Contains('l'))    //if the left (medial --> lateral is increasing x.
+            //{
+            //    while (input.Count != 0)
+            //    {
+            //        means = new double[input.Count, 3];
+            //        for (int i = 0; i < input.Count; i++)
+            //        {
+            //            for (int j = 0; j < 3; j++)
+            //            {
+            //                means[i, j] = Stats.SliceMean(j, input[i]);
+            //            }
+            //        }
+            //        smallestY.Clear();
+            //        int[] smallY = Stats.LowestValIndices(means, 1, (int)(numCutsZ + 1) * (numCutsX + 1));    //Get the list of smallest y slices.
+            //        for (int i = 0; i < smallY.Length; i++)
+            //        {
+            //            //Add the smallest y sections to the list
+            //            smallestY.Add(input[smallY[i]]);
+            //            //remove from beginning list
+            //            input.RemoveAt(smallY[i]);
+            //        }
+            //        //Now from these get the smallest x.
+            //        while (smallestY.Count != 0)
+            //        {
+            //            meansY = new double[smallestY.Count, 3];
+            //            for (int i = 0; i < smallestY.Count; i++)
+            //            {
+            //                for (int j = 0; j < 3; j++)
+            //                {
+            //                    meansY[i, j] = Stats.SliceMean(j, smallestY[i]);
+            //                }
+            //            }
+            //            smallestX.Clear();
+            //            int[] smallX = Stats.LowestValIndices(meansY, 0, numCutsZ + 1);
+            //            for (int i = 0; i < smallX.Length; i++)
+            //            {
+            //                //Add the smallest y sections to the list
+            //                smallestX.Add(smallestY[smallX[i]]);
+            //                smallestY.RemoveAt(smallX[i]);
+            //            }
+
+            //            while (smallestX.Count != 0)
+            //            {
+            //                meansZ = new double[smallestX.Count, 3];
+            //                for (int i = 0; i < smallestX.Count; i++)
+            //                {
+            //                    for (int j = 0; j < 3; j++)
+            //                    {
+            //                        meansZ[i, j] = Stats.SliceMean(j, smallestX[i]);
+            //                    }
+            //                }
+            //                int[] smallZ = Stats.LowestValIndices(meansZ, 2, 1);
+            //                for (int i = 0; i < smallZ.Length; i++)
+            //                {
+            //                    finalContours.Add(smallestX[smallZ[0]]);
+            //                    smallestX.RemoveAt(smallZ[0]);
+            ////                }
+                           
+            //            }
+            //        }
+            //    }
+            //}
+            //else
+            //{
+      
+            //}
+            //return finalContours;
         }
         public static List<List<double[,]>> XChop(List<double[,]> contours, int numCutsX)
         {
@@ -131,20 +216,31 @@ namespace DicomChopper.Segmentation
                 {
                     for (int j = 0; j < contours[i].Length / 3; j++)    //loop through all points
                     {
+
                         if (x == 0)
                         {
                             if (contours[i][j, 0] <= xCuts[x])
+                            {
+                                divisions[x].Add(new double[] { contours[i][j, 0], contours[i][j, 1], contours[i][j, 2] });
+
+                            }
+                        }
+                        else if (x == xCuts.Length)
+                        {
+
+
+                            if (contours[i][j, 0] >= xCuts[x - 1])
                             {
                                 divisions[x].Add(new double[] { contours[i][j, 0], contours[i][j, 1], contours[i][j, 2] });
                             }
                         }
                         else
                         {
-                            if (contours[i][j, 0] >= xCuts[x - 1])
+                            if ((contours[i][j, 0] >= xCuts[x - 1]) && (contours[i][j, 0] <= xCuts[x]))
                             {
                                 divisions[x].Add(new double[] { contours[i][j, 0], contours[i][j, 1], contours[i][j, 2] });
                             }
-                        }
+                        }                       
                     }
                 }
                 //at this point divisions has a list item holding a list of array points for each cut.
@@ -370,7 +466,6 @@ namespace DicomChopper.Segmentation
                 //Make the list the correct size so that there is an item for each y division.
                 for (int div = 0; div <= yCuts.Length; div++)
                 {
-                    divisions.Add(new List<double[]>());
                     finalContours.Add(new List<double[,]>());
                 }
 
@@ -378,7 +473,8 @@ namespace DicomChopper.Segmentation
                 for (int i = 0; i < contours.Count; i++)    //for all of the contours
                 {
                     divisions.Clear();
-                    for (int div = 0; div <= yCuts.Length; div++)
+                //Make the list the correct size so that there is an item for each y division.
+                for (int div = 0; div <= yCuts.Length; div++)
                     {
                         divisions.Add(new List<double[]>());                 
                     }
@@ -386,21 +482,30 @@ namespace DicomChopper.Segmentation
                     {
                         for (int j = 0; j < contours[i].Length / 3; j++)    //loop through all points
                         {
-                            if (y == 0)
+                        if (y == 0)
+                        {
+                            if (contours[i][j, 1] <= yCuts[y])
                             {
-                                if (contours[i][j,1] <= yCuts[y])
-                                {
-                                    divisions[y].Add(new double[] { contours[i][j, 0], contours[i][j, 1], contours[i][j, 2] });
-    
-                                }
+                                divisions[y].Add(new double[] { contours[i][j, 0], contours[i][j, 1], contours[i][j, 2] });
+
                             }
+                        }
+                        else if (y == yCuts.Length)
+                        {
+
+
+                            if (contours[i][j, 1] >= yCuts[y-1])
+                            {
+                                divisions[y].Add(new double[] { contours[i][j, 0], contours[i][j, 1], contours[i][j, 2] });
+                            }
+                        }
                         else
+                        {
+                            if ((contours[i][j, 1] >= yCuts[y - 1])&& (contours[i][j, 1] <= yCuts[y]))
                             {
-                                if (contours[i][j,1] >= yCuts[y - 1])
-                                {
-                                    divisions[y].Add(new double[] { contours[i][j, 0], contours[i][j, 1], contours[i][j, 2] });
-                                }
+                                divisions[y].Add(new double[] { contours[i][j, 0], contours[i][j, 1], contours[i][j, 2] });
                             }
+                        }
                         }
                     }
                     //at this point divisions has a list item holding a list of array points for each cut.

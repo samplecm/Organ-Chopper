@@ -64,7 +64,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ContourTxtMaker.cs" />
+    <Compile Include="ContourPlotting.cs" />
     <Compile Include="DataConverting\DataConversion.cs" />
     <Compile Include="DICOMParsing\DicomParsing.cs" />
     <Compile Include="Doses\DicomDose.cs" />
