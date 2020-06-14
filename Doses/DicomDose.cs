@@ -43,12 +43,11 @@ namespace DicomChopper.Doses
 
             //Get file name
             Console.WriteLine("Please enter a name for the Mean Dose file.");
-            string path = Directory.GetCurrentDirectory();
-            string nameInput = Console.ReadLine();
-            string fileName = "../../MeanDoses/" + path + nameInput;
+            string path = Directory.GetCurrentDirectory() + @"\..\..\MeanDoses";
+            string nameInput = Console.ReadLine() + ".txt";
 
             //Find mean doses:
-            double[,] meanDoses = new double[contours.Count, 2];    //second column for # of dose voxels in region.
+            double[,] meanDoses = new double[contours.Count + 1, 2];    //second column for # of dose voxels in region. Final row for whole mean
             double x, y, z, minY, maxY, minX, maxX;
             double[,] polygon;
             double[] point = new double[3]; //the interpolated contour of the dose voxel z position.
@@ -101,28 +100,44 @@ namespace DicomChopper.Doses
                     }
                 }
             }
+            double wholeMean = 0;
+            int totalPoints = 0;
             for (int i = 0; i < meanDoses.GetLength(0); i++)
             {
+                wholeMean += meanDoses[i,0];
                 meanDoses[i, 0] /= meanDoses[i, 1];
+                totalPoints += (int)meanDoses[i, 1];
             }
+            wholeMean /= totalPoints;
+            meanDoses[meanDoses.GetLength(0)-1, 0] = wholeMean;
+            meanDoses[meanDoses.GetLength(0)-1, 1] = totalPoints;
 
 
 
-            using (StreamWriter outputFile = new StreamWriter(Path.Combine(path, "contours.txt")))
+
+            using (StreamWriter outputFile = new StreamWriter(Path.Combine(path, nameInput)))
             {
+                string beginSpace = "         ";    //how much space between columns?
+                string middleSpace = "     ";
+                outputFile.WriteLine("Regional mean doses (Gy):");
+                outputFile.WriteLine(Environment.NewLine);
+                outputFile.WriteLine("SubRegion:  |  Dose:");
+                outputFile.WriteLine("--------------------");
 
-                for (int i = 0; i < contours.Count; i++)
+                for (int i = 0; i < meanDoses.GetLength(0)-1; i++)
                 {
-
+                    if (i == 10)
+                    {
+                        beginSpace = "        "; 
+                    }
+                    outputFile.WriteLine(beginSpace + (i+1) + middleSpace + String.Format("{0:0.00}", meanDoses[i,0]));
                     outputFile.WriteLine(Environment.NewLine);
+                    outputFile.WriteLine("--------------------");
                 }
+
+                outputFile.WriteLine("Whole Mean Dose:    " + String.Format("{0:0.00}", meanDoses[meanDoses.GetLength(0)-1, 0]));
             }
-            GnuPlot.SPlot("contours.txt");
-            Console.ReadLine();
 
-
-            //Now check the dose in each subregion.
-            Console.ReadLine();
         }
         public static DoseMatrix DoseMatrixSuperSampler(DoseMatrix dose, double[,,] organDoseBounds, int SSFactor, int SSFactorZ)
         {
