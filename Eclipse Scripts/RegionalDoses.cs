@@ -39,7 +39,7 @@ namespace VMS.TPS
             Dose dose = plan1.Dose;
             plan.DoseValuePresentation = DoseValuePresentation.Absolute;
             DoseValue.DoseUnit doseUnit = dose.DoseMax3D.Unit;
-            DoseMatrix doses = GetDoseMatrix(dose);
+            DoseMatrix doses = GetDoseMatrix(dose, image, plan1);
             //Get the dose matrix dimensions:	
             
             //MessageBox.Show(doses.Matrix[39, 39, 19].ToString());
@@ -54,7 +54,6 @@ namespace VMS.TPS
             int count = 0;
             foreach (Structure structure in structureSet.Structures)
             {
-
                 if ((structure.Name.ToLower().Contains("par")) && !(structure.Name.ToLower().Contains("opt")))
                 {
                     //this should be a parotid... check its mean dose, use it if its the smallest.
@@ -64,12 +63,20 @@ namespace VMS.TPS
                         ROI.Clear();
                         ROI.Add(structure);
                         count++;
-
                     }
                 }
             }
-            DoseValue d = CalculateMeanDose(plan1, ROI[0]);
+            DoseValue wholeMean = CalculateMeanDose(plan1, ROI[0]);
             MessageBox.Show(d.Dose.ToString());
+            List<VVector[][]> contours = new List<VVector[][]>();
+            //ROI is now a list with one structure; the one of interest.
+            int zSlices = structureSet.Image.ZSize;
+            for (int z = 0; z < zSlices; z++)
+            {
+                VVector[][] contoursOnPlane = ROI[0].GetContoursOnImagePlane(z);
+                
+            }
+
 
 
         }
@@ -143,7 +150,7 @@ namespace VMS.TPS
 
         }
 
-        public static DoseMatrix GetDoseMatrix(Dose dose)
+        public static DoseMatrix GetDoseMatrix(Dose dose, Image image, PlanSetup plan1)
         {
             DoseMatrix doses = new DoseMatrix();
             int xSize = dose.XSize;
