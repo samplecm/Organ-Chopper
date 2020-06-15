@@ -1696,9 +1696,7 @@ namespace VMS.TPS
             }
             if (closestPoint == 1000)
             {
-                Console.WriteLine("Closest Point not found, terminating.");
-                Thread.Sleep(2000);    //pause for 2 seconds
-                System.Environment.Exit(0);
+                MessageBox.Show("Closest Point not found, terminating.");
             }
             return closestPoint;
         }
@@ -1752,7 +1750,6 @@ namespace VMS.TPS
         //variation in x or y from one contour to the next, then remove the contour which is 
         //furthest from the mean.
         {
-            Console.WriteLine("Checking for islands and removing");
             int numIslands = 0;
             int numContours = contours.Count;
             double meanX = 0;
@@ -1799,15 +1796,15 @@ namespace VMS.TPS
             }
             if (numIslands == 0)
             {
-                Console.WriteLine("No islands found");
+                
             }
             else if (numIslands == 1)
             {
-                Console.WriteLine(numIslands + " island detected and removed");
+                MessageBox.Show(numIslands + " island detected and removed");
             }
             else
             {
-                Console.WriteLine(numIslands + " islands detected and removed");
+                MessageBox.Show(numIslands + " islands detected and removed");
             }
             return contours;
         }
