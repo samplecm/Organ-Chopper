@@ -9,7 +9,7 @@ using VMS.TPS.Common.Model.Types;
 
 namespace VMS.TPS
 {
-    
+
     public class Script
     {
         public void Execute(ScriptContext context)
@@ -39,9 +39,9 @@ namespace VMS.TPS
             Dose dose = plan1.Dose;
             plan.DoseValuePresentation = DoseValuePresentation.Absolute;
             DoseValue.DoseUnit doseUnit = dose.DoseMax3D.Unit;
-            DoseMatrix doses = GetDoseMatrix(dose, image, plan1);
+            //DoseMatrix doses = GetDoseMatrix(dose, image, plan1);
             //Get the dose matrix dimensions:	
-            
+
             //MessageBox.Show(doses.Matrix[39, 39, 19].ToString());
             //MessageBox.Show(dose.DoseMax3D.Unit.ToString());	
 
@@ -67,23 +67,50 @@ namespace VMS.TPS
                 }
             }
             DoseValue wholeMean = CalculateMeanDose(plan1, ROI[0]);
-            MessageBox.Show(d.Dose.ToString());
-            List<VVector[][]> contours = new List<VVector[][]>();
+            //MessageBox.Show(wholeMean.Dose.ToString());
+            List<VVector[]> contoursTemp = new List<VVector[][]>();
             //ROI is now a list with one structure; the one of interest.
             int zSlices = structureSet.Image.ZSize;
             for (int z = 0; z < zSlices; z++)
             {
                 VVector[][] contoursOnPlane = ROI[0].GetContoursOnImagePlane(z);
-                if (contoursOnPlane.GetLength(0) == 1)
+                if (contoursOnPlane.GetLength(0) > 0)
                 {
-                    contours.Add(contoursOnPlane);
+                    //If length > 1, there could be an island.
+                    if (contoursOnPlane.GetLength(0) > 1)
+                    {
+                    // will check for the one with the most points, and keep that one.
+                        int keeper = 0;
+                        int numPoints = 0;
+                        for (int cont = 0; cont < contoursOnPlane.GetLength(0); cont++)
+                        {
+                            if (contoursOnPlane[cont].Length > numPoints)
+                            {
+                                keeper = cont;
+                            }
+                        }
+                        contoursTemp.Add(contoursOnPlane[keeper]);
+                    }
+                    else
+                    {
+                        contoursTemp.Add(contoursOnPlane[0]);
+                    }
                 }
-
-
             }
-
-
-
+            //MessageBox.Show(contoursTemp[0][0][0].z.ToString());
+            //Now convert this into a double[,] array list
+            List<double[,]> contours = new List<double[,]>();
+            for (int i = 0; i < contoursTemp.Count; i++)
+            {
+                int row = 0;
+                contours[i] = new double[contoursTemp[i].Length, 3];
+                for (int j = 0; j < contoursTemp[i].Length; j++)
+                {
+                    contours[i][j, 0] = contoursTemp[i][j].x;
+                    contours[i][j, 1] = contoursTemp[i][j].y;
+                    contours[i][j, 2] = contoursTemp[i][j].z;
+                }
+            }
         }
 
         public DoseValue CalculateMeanDose(PlanSetup plan, Structure structure)

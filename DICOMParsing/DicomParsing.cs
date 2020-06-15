@@ -184,10 +184,10 @@ namespace DicomChopper.DICOMParsing
             {
                 contours = ContourFixing.ClosedLooper(contours);
             }
-            if (removeIslands == true)    //remove islands if true
-            {
-                contours = ContourFixing.IslandRemover(contours);
-            }
+            //if (removeIslands == true)    //remove islands if true
+            //{
+            //    contours = ContourFixing.IslandRemover(contours);
+            //}
             Console.WriteLine("Successfully retrieved contours.");
 
             //convert back to a double array.
