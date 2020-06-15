@@ -19,8 +19,6 @@ namespace DicomChopper.Doses
             string doseID = doseData.GetString(DicomTag.PatientID);
 
 
-
-
             //make sure name matches in struct and dose files:
             if (doseID != patientID)
             {
@@ -40,7 +38,7 @@ namespace DicomChopper.Doses
             //Get the range of the dose Matrix that surrounds the organ of interest.
             double[,,] organDoseBounds = OrganDoseBounds(contours, dose);
             DoseMatrix doseSS = DoseMatrixSuperSampler(dose, organDoseBounds, SSFactor, SSFactorZ);
-
+            Console.WriteLine(dose.Matrix[39, 39, 9]);
             //Get file name
             Console.WriteLine("Please enter a name for the Mean Dose file.");
             string path = Directory.GetCurrentDirectory() + @"\..\..\MeanDoses";
