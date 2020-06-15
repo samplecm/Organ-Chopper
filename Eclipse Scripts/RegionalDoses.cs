@@ -58,7 +58,7 @@ namespace VMS.TPS
             string organName = tuple.Item2;
             MessageBox.Show(contours[0][0, 2].ToString());
             List<List<double[,]>> choppedContours = Chop(contours, numCutsX, numCutsY, numCutsZ, organName);
-            MeanDoses(contours, doses, SSFactor, SSFactorZ);
+            double[,] meanDoses = MeanDoses(choppedContours, doses, SSFactor, SSFactorZ);
 
 
         }
@@ -944,7 +944,7 @@ namespace VMS.TPS
         public static double[] BestCutZ(List<double[,]> contours, int numCuts)
         {
             double[] zCuts = new double[numCuts];    //to hold z value of cut locations
-            int numConts = contours.Count();
+            int numConts = contours.Count;
             double totalVolume = 0;
             double deltaZ = Math.Abs(contours[0][0, 2] - contours[1][0, 2]);    //distance between adjacent contours
             double[] contourAreas = new double[numConts];
@@ -1294,7 +1294,6 @@ namespace VMS.TPS
         //Add the first row to the end of an array. (close loops)
         {
             int[] b = new int[a.Length - 1];
-            int row = 0;
             if (index != 0)
             {
                 for (int j = 0; j < index; j++)
