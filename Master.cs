@@ -35,8 +35,7 @@ namespace DicomChopper
             string organName = DicomParsing.ROIName;
 
             //Chop it!
-            List<List<double[,]>> contours = new List<List<double[,]>>();
-            contours = Chopper.Chop(contoursTemp, numCutsX, numCutY, numCutsZ, organName);
+            List<List<double[,]>> contours = Chopper.Chop(contoursTemp, numCutsX, numCutY, numCutsZ, organName);
 
             //Plot it!
             Console.WriteLine("Would you like to plot the chopped up ROI? (y/n)");

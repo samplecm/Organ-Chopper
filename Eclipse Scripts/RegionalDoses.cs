@@ -48,12 +48,16 @@ namespace VMS.TPS
 
             //Now get the contours. Get the contralateral parotid as parotid with the smallest dose.
             StructureSet structureSet = context.StructureSet;
-            List<double[,]> contours = GetContours(structureSet, plan1);
-            
+            var tuple = GetContours(structureSet, plan1);    //returns contours and organ name.
+            List<double[,]> contours = tuple.Item1;
+            string organName = tuple.Item2;
+            MessageBox.Show(contours[0][0, 2].ToString());
+            //List<List<double[,]>> choppedContours = Chop(contoursTemp, numCutsX, numCutY, numCutsZ, organName);
+
 
         }
 
-        public DoseValue CalculateMeanDose(PlanSetup plan, Structure structure)
+        public static DoseValue CalculateMeanDose(PlanSetup plan, Structure structure)
         {
             Dose dose = plan.Dose;
             if (dose == null)
@@ -170,15 +174,17 @@ namespace VMS.TPS
 
         }
 
-        public static List<double[,]> GetContours(StructureSet structureSet, PlanSetup plan1)
+        public static Tuple<List<double[,]>, string> GetContours(StructureSet structureSet, PlanSetup plan1)
         {
             double meanDose = 100000;     //will be updated for each parotid with smaller mean dose.
             List<Structure> ROI = new List<Structure>();    //Saving in a list because I only have read access.
             DoseValue structDose;
             int count = 0;
+            string organName;
             foreach (Structure structure in structureSet.Structures)
             {
-                if ((structure.Name.ToLower().Contains("par")) && !(structure.Name.ToLower().Contains("opt")))
+                organName = structure.Name;
+                if ((organName.ToLower().Contains("par")) && !(organName.ToLower().Contains("opt")))
                 {
                     //this should be a parotid... check its mean dose, use it if its the smallest.
                     structDose = CalculateMeanDose(plan1, structure);
@@ -195,47 +201,41 @@ namespace VMS.TPS
             List<VVector[]> contoursTemp = new List<VVector[]>();
             //ROI is now a list with one structure; the one of interest.
             int zSlices = structureSet.Image.ZSize;
+
             for (int z = 0; z < zSlices; z++)
             {
                 VVector[][] contoursOnPlane = ROI[0].GetContoursOnImagePlane(z);
+                //If length > 1, there could be an island.
                 if (contoursOnPlane.GetLength(0) > 0)
                 {
-                    //If length > 1, there could be an island.
-                    if (contoursOnPlane.GetLength(0) > 1)
+                    // will check for the one with the most points, and keep that one.
+                    int keeper = 0;
+                    int numPoints = 0;
+                    for (int cont = 0; cont < contoursOnPlane.GetLength(0); cont++)
                     {
-                        // will check for the one with the most points, and keep that one.
-                        int keeper = 0;
-                        int numPoints = 0;
-                        for (int cont = 0; cont < contoursOnPlane.GetLength(0); cont++)
+                        if (contoursOnPlane[cont].GetLength(0) > numPoints)
                         {
-                            if (contoursOnPlane[cont].Length > numPoints)
-                            {
-                                keeper = cont;
-                            }
+                            keeper = cont;
                         }
-                        contoursTemp.Add(contoursOnPlane[keeper]);
                     }
-                    else
-                    {
-                        contoursTemp.Add(contoursOnPlane[0]);
-                    }
+                    contoursTemp.Add(contoursOnPlane[keeper]);
                 }
             }
-            //MessageBox.Show(contoursTemp[0][0][0].z.ToString());
+            //MessageBox.Show(contoursTemp[0][0].z.ToString());
             //Now convert this into a double[,] array list
             List<double[,]> contours = new List<double[,]>();
             for (int i = 0; i < contoursTemp.Count; i++)
             {
-                contours[i] = new double[contoursTemp[i].Length, 3];
-                for (int j = 0; j < contoursTemp[i].Length - 1; j++)
+                contours.Add(new double[contoursTemp[i].GetLength(0), 3]);
+                for (int j = 0; j < contoursTemp[i].GetLength(0) - 1; j++)
                 {
                     contours[i][j, 0] = contoursTemp[i][j].x;
                     contours[i][j, 1] = contoursTemp[i][j].y;
                     contours[i][j, 2] = contoursTemp[i][j].z;
                 }
             }
-            return contours;
+            return Tuple.Create(contours, organName);
         }
     }
-    
+
 }
