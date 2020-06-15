@@ -15,7 +15,7 @@ namespace VMS.TPS
         public void Execute(ScriptContext context)
         {
             int numCutsX = 2;
-            int numCutY = 1;
+            int numCutsY = 1;
             int numCutsZ = 2;
             int SSFactor = 4; //supersampling factors
             int SSFactorZ = 1;
@@ -44,7 +44,7 @@ namespace VMS.TPS
             Dose dose = plan1.Dose;
             plan.DoseValuePresentation = DoseValuePresentation.Absolute;
             DoseValue.DoseUnit doseUnit = dose.DoseMax3D.Unit;
-            //DoseMatrix doses = GetDoseMatrix(dose, image, plan1);
+            DoseMatrix doses = GetDoseMatrix(dose, image, plan1);
             //Get the dose matrix dimensions:	
 
             //MessageBox.Show(doses.Matrix[39, 39, 19].ToString());
@@ -58,7 +58,7 @@ namespace VMS.TPS
             string organName = tuple.Item2;
             MessageBox.Show(contours[0][0, 2].ToString());
             List<List<double[,]>> choppedContours = Chop(contours, numCutsX, numCutsY, numCutsZ, organName);
-            MeanDoses(contours, SSFactor, SSFactorZ);
+            MeanDoses(contours, doses, SSFactor, SSFactorZ);
 
 
         }
@@ -1368,10 +1368,10 @@ namespace VMS.TPS
                                     //is point within max bounds of the region? 
                                     for (int idx = cont; idx <= cont + 1; idx++)    //for both these contours that z is between 
                                     {
-                                        minX = Stats.min(contours[region][idx], 0);
-                                        minY = Stats.min(contours[region][idx], 1);
-                                        maxX = Stats.max(contours[region][idx], 0);
-                                        maxY = Stats.max(contours[region][idx], 1);
+                                        minX = min(contours[region][idx], 0);
+                                        minY = min(contours[region][idx], 1);
+                                        maxX = max(contours[region][idx], 0);
+                                        maxY = max(contours[region][idx], 1);
                                         if ((x > minX) && (x < maxX) && (y > minY) && (y < maxY))
                                         {
                                             //Now interpolate a contour between the two.
@@ -1731,7 +1731,6 @@ namespace VMS.TPS
             double meanY = 0;
             int maxSep = 30; //island cutoff criteria (mm), difference in means between adjacent contours (X,y)
             List<double> means = new List<double>();
-            int numPoints = 0; //divide by to get mean.
 
 
             //first get the mean x,y,z for the whole ROI:
