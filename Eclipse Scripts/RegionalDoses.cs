@@ -48,7 +48,7 @@ namespace VMS.TPS
 
             //Now get the contours. Get the contralateral parotid as parotid with the smallest dose.
             StructureSet structureSet = context.StructureSet;
-            List<double[,]> contours = GetContours(structureSet);
+            List<double[,]> contours = GetContours(structureSet, plan1);
             
 
         }
@@ -170,7 +170,7 @@ namespace VMS.TPS
 
         }
 
-        public static List<double[,]> GetContours(StructureSet structureSet)
+        public static List<double[,]> GetContours(StructureSet structureSet, PlanSetup plan1)
         {
             double meanDose = 100000;     //will be updated for each parotid with smaller mean dose.
             List<Structure> ROI = new List<Structure>();    //Saving in a list because I only have read access.
