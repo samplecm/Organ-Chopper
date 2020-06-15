@@ -14,6 +14,11 @@ namespace VMS.TPS
     {
         public void Execute(ScriptContext context)
         {
+            int numCutsX = 2;
+            int numCutY = 1;
+            int numCutsZ = 2;
+            int SSFactor = 4; //supersampling factors
+            int SSFactorZ = 1;
             // Check for patient loaded
             if (context.Patient == null)
             {
@@ -52,8 +57,8 @@ namespace VMS.TPS
             List<double[,]> contours = tuple.Item1;
             string organName = tuple.Item2;
             MessageBox.Show(contours[0][0, 2].ToString());
-            List<List<double[,]>> choppedContours = Chop(contoursTemp, numCutsX, numCutY, numCutsZ, organName);
-            MeanDoses(contours, dosePath, patientID, SSFactor, SSFactorZ);
+            List<List<double[,]>> choppedContours = Chop(contours, numCutsX, numCutsY, numCutsZ, organName);
+            MeanDoses(contours, SSFactor, SSFactorZ);
 
 
         }
@@ -304,7 +309,7 @@ namespace VMS.TPS
             //make 2D array which holds the mean x,y,z for each contour.
             int j = 0;
             List<List<double[,]>> finalContours = new List<List<double[,]>>();
-            if (organName.ToLower().Contains('l'))    //if the left (medial --> lateral is increasing x.
+            if (organName.ToLower().Contains("l"))    //if the left (medial --> lateral is increasing x.
             {
                 for (int i = 0; i < contours.Count; i++)
                 {
