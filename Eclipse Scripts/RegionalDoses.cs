@@ -48,69 +48,9 @@ namespace VMS.TPS
 
             //Now get the contours. Get the contralateral parotid as parotid with the smallest dose.
             StructureSet structureSet = context.StructureSet;
-            double meanDose = 100000;     //will be updated for each parotid with smaller mean dose.
-            List<Structure> ROI = new List<Structure>();    //Saving in a list because I only have read access.
-            DoseValue structDose;
-            int count = 0;
-            foreach (Structure structure in structureSet.Structures)
-            {
-                if ((structure.Name.ToLower().Contains("par")) && !(structure.Name.ToLower().Contains("opt")))
-                {
-                    //this should be a parotid... check its mean dose, use it if its the smallest.
-                    structDose = CalculateMeanDose(plan1, structure);
-                    if (structDose.Dose < meanDose)
-                    {
-                        ROI.Clear();
-                        ROI.Add(structure);
-                        count++;
-                    }
-                }
-            }
-            DoseValue wholeMean = CalculateMeanDose(plan1, ROI[0]);
-            //MessageBox.Show(wholeMean.Dose.ToString());
-            List<VVector[]> contoursTemp = new List<VVector[][]>();
-            //ROI is now a list with one structure; the one of interest.
-            int zSlices = structureSet.Image.ZSize;
-            for (int z = 0; z < zSlices; z++)
-            {
-                VVector[][] contoursOnPlane = ROI[0].GetContoursOnImagePlane(z);
-                if (contoursOnPlane.GetLength(0) > 0)
-                {
-                    //If length > 1, there could be an island.
-                    if (contoursOnPlane.GetLength(0) > 1)
-                    {
-                    // will check for the one with the most points, and keep that one.
-                        int keeper = 0;
-                        int numPoints = 0;
-                        for (int cont = 0; cont < contoursOnPlane.GetLength(0); cont++)
-                        {
-                            if (contoursOnPlane[cont].Length > numPoints)
-                            {
-                                keeper = cont;
-                            }
-                        }
-                        contoursTemp.Add(contoursOnPlane[keeper]);
-                    }
-                    else
-                    {
-                        contoursTemp.Add(contoursOnPlane[0]);
-                    }
-                }
-            }
-            //MessageBox.Show(contoursTemp[0][0][0].z.ToString());
-            //Now convert this into a double[,] array list
-            List<double[,]> contours = new List<double[,]>();
-            for (int i = 0; i < contoursTemp.Count; i++)
-            {
-                int row = 0;
-                contours[i] = new double[contoursTemp[i].Length, 3];
-                for (int j = 0; j < contoursTemp[i].Length; j++)
-                {
-                    contours[i][j, 0] = contoursTemp[i][j].x;
-                    contours[i][j, 1] = contoursTemp[i][j].y;
-                    contours[i][j, 2] = contoursTemp[i][j].z;
-                }
-            }
+            List<double[,]> contours = GetContours(structureSet);
+            
+
         }
 
         public DoseValue CalculateMeanDose(PlanSetup plan, Structure structure)
@@ -230,5 +170,70 @@ namespace VMS.TPS
 
         }
     }
-
+    public static List<double[,]> GetContours(StructureSet structureSet)
+    {
+        double meanDose = 100000;     //will be updated for each parotid with smaller mean dose.
+        List<Structure> ROI = new List<Structure>();    //Saving in a list because I only have read access.
+        DoseValue structDose;
+        int count = 0;
+        foreach (Structure structure in structureSet.Structures)
+        {
+            if ((structure.Name.ToLower().Contains("par")) && !(structure.Name.ToLower().Contains("opt")))
+            {
+                //this should be a parotid... check its mean dose, use it if its the smallest.
+                structDose = CalculateMeanDose(plan1, structure);
+                if (structDose.Dose < meanDose)
+                {
+                    ROI.Clear();
+                    ROI.Add(structure);
+                    count++;
+                }
+            }
+        }
+        DoseValue wholeMean = CalculateMeanDose(plan1, ROI[0]);
+        //MessageBox.Show(wholeMean.Dose.ToString());
+        List<VVector[]> contoursTemp = new List<VVector[]>();
+        //ROI is now a list with one structure; the one of interest.
+        int zSlices = structureSet.Image.ZSize;
+        for (int z = 0; z < zSlices; z++)
+        {
+            VVector[][] contoursOnPlane = ROI[0].GetContoursOnImagePlane(z);
+            if (contoursOnPlane.GetLength(0) > 0)
+            {
+                //If length > 1, there could be an island.
+                if (contoursOnPlane.GetLength(0) > 1)
+                {
+                    // will check for the one with the most points, and keep that one.
+                    int keeper = 0;
+                    int numPoints = 0;
+                    for (int cont = 0; cont < contoursOnPlane.GetLength(0); cont++)
+                    {
+                        if (contoursOnPlane[cont].Length > numPoints)
+                        {
+                            keeper = cont;
+                        }
+                    }
+                    contoursTemp.Add(contoursOnPlane[keeper]);
+                }
+                else
+                {
+                    contoursTemp.Add(contoursOnPlane[0]);
+                }
+            }
+        }
+        //MessageBox.Show(contoursTemp[0][0][0].z.ToString());
+        //Now convert this into a double[,] array list
+        List<double[,]> contours = new List<double[,]>();
+        for (int i = 0; i < contoursTemp.Count; i++)
+        {
+            contours[i] = new double[contoursTemp[i].Length, 3];
+            for (int j = 0; j < contoursTemp[i].Length - 1; j++)
+            {
+                contours[i][j, 0] = contoursTemp[i][j].x;
+                contours[i][j, 1] = contoursTemp[i][j].y;
+                contours[i][j, 2] = contoursTemp[i][j].z;
+            }
+        }
+        return contours;
+    }
 }
