@@ -9,17 +9,7 @@ using VMS.TPS.Common.Model.Types;
 
 namespace VMS.TPS
 {
-    public class DoseMatrix
-    {
-        public double[,,] Matrix { get; set; }
-        public double[] xValues;
-        public double[] yValues;
-        public double[] zValues;
-        public DoseMatrix()
-        {
-        }
-
-    }
+    
     public class Script
     {
         public void Execute(ScriptContext context)
@@ -49,46 +39,9 @@ namespace VMS.TPS
             Dose dose = plan1.Dose;
             plan.DoseValuePresentation = DoseValuePresentation.Absolute;
             DoseValue.DoseUnit doseUnit = dose.DoseMax3D.Unit;
-            DoseMatrix doses = new DoseMatrix();
+            DoseMatrix doses = GetDoseMatrix(dose);
             //Get the dose matrix dimensions:	
-            int xSize = dose.XSize;
-            int ySize = dose.YSize;
-            int zSize = dose.ZSize;
-            double[,,] matrix = new double[ySize, xSize, zSize];
-            double xRes = dose.XRes;
-            double yRes = dose.YRes;
-            double zRes = dose.ZRes;
-            double[] xValues = new double[xSize];
-            double[] yValues = new double[ySize];
-            double[] zValues = new double[zSize];
-            for (int i = 0; i < xSize; i++)
-            {
-                xValues[i] = (dose.Origin + dose.XDirection * i).x;
-            }
-            for (int i = 0; i < ySize; i++)
-            {
-                yValues[i] = (dose.Origin + dose.YDirection * i).y;
-            }
-            for (int i = 0; i < zSize; i++)
-            {
-                zValues[i] = (dose.Origin + dose.ZDirection * i).z;
-            }
-            //Get the dose matrix
-            for (double i = 0; i < xSize * xRes; i += xRes)
-            {
-
-                for (double j = 0; j < ySize * yRes; j += yRes)
-
-                {
-                    for (double k = 0; k < zSize * zRes; k += zRes)
-                    {
-                        VVector point = dose.Origin + dose.XDirection * i + dose.YDirection * j + dose.ZDirection * k;
-                        point = image.DicomToUser(point, plan1);
-                        matrix[(int)(j / yRes), (int)(i / xRes), (int)(k / zRes)] = dose.GetDoseToPoint(point).Dose;
-                    }
-                }
-            }
-            doses.Matrix = matrix;
+            
             //MessageBox.Show(doses.Matrix[39, 39, 19].ToString());
             //MessageBox.Show(dose.DoseMax3D.Unit.ToString());	
 
@@ -96,20 +49,27 @@ namespace VMS.TPS
             //Now get the contours. Get the contralateral parotid as parotid with the smallest dose.
             StructureSet structureSet = context.StructureSet;
             double meanDose = 100000;     //will be updated for each parotid with smaller mean dose.
-            Structure parotid;
+            List<Structure> ROI = new List<Structure>();    //Saving in a list because I only have read access.
+            DoseValue structDose;
+            int count = 0;
             foreach (Structure structure in structureSet.Structures)
             {
-                if ((structure.Name.ToLower().Contains("par"))&& !(structure.Name.ToLower().Contains("opt")))
+
+                if ((structure.Name.ToLower().Contains("par")) && !(structure.Name.ToLower().Contains("opt")))
                 {
                     //this should be a parotid... check its mean dose, use it if its the smallest.
-                    DoseValue structDose = CalculateMeanDose(plan1, structure);
+                    structDose = CalculateMeanDose(plan1, structure);
                     if (structDose.Dose < meanDose)
                     {
-                        parotid = structure;
+                        ROI.Clear();
+                        ROI.Add(structure);
+                        count++;
+
                     }
                 }
             }
-            MessageBox.Show(structDose.Dose.ToString());
+            DoseValue d = CalculateMeanDose(plan1, ROI[0]);
+            MessageBox.Show(d.Dose.ToString());
 
 
         }
@@ -149,17 +109,17 @@ namespace VMS.TPS
 
                     for (int i = 0; i < segmentProfile.Count; i++)
                     {
-                        if (segmentStride[i](i))
+                        if (segmentStride[i])
                         {
                             if (doseProfile == null)
                             {
                                 doseProfile = dose.GetDoseProfile(start, end, doseArray);
                             }
 
-                            double doseValue = doseProfile[i](i).Value;
+                            double doseValue = doseProfile[i].Value;
                             if (!Double.IsNaN(doseValue))
                             {
-                                sum += doseProfile[i](i).Value;
+                                sum += doseProfile[i].Value;
                                 count++;
                             }
                         }
@@ -171,7 +131,65 @@ namespace VMS.TPS
             return new DoseValue(mean, doseUnit);
         }
 
+        public class DoseMatrix
+        {
+            public double[,,] Matrix { get; set; }
+            public double[] xValues;
+            public double[] yValues;
+            public double[] zValues;
+            public DoseMatrix()
+            {
+            }
 
+        }
+
+        public static DoseMatrix GetDoseMatrix(Dose dose)
+        {
+            DoseMatrix doses = new DoseMatrix();
+            int xSize = dose.XSize;
+            int ySize = dose.YSize;
+            int zSize = dose.ZSize;
+            double[,,] matrix = new double[ySize, xSize, zSize];
+            double xRes = dose.XRes;
+            double yRes = dose.YRes;
+            double zRes = dose.ZRes;
+            double[] xValues = new double[xSize];
+            double[] yValues = new double[ySize];
+            double[] zValues = new double[zSize];
+            for (int i = 0; i < xSize; i++)
+            {
+                xValues[i] = (dose.Origin + dose.XDirection * i).x;
+            }
+            for (int i = 0; i < ySize; i++)
+            {
+                yValues[i] = (dose.Origin + dose.YDirection * i).y;
+            }
+            for (int i = 0; i < zSize; i++)
+            {
+                zValues[i] = (dose.Origin + dose.ZDirection * i).z;
+            }
+            //Get the dose matrix
+            for (double i = 0; i < xSize * xRes; i += xRes)
+            {
+
+                for (double j = 0; j < ySize * yRes; j += yRes)
+
+                {
+                    for (double k = 0; k < zSize * zRes; k += zRes)
+                    {
+                        VVector point = dose.Origin + dose.XDirection * i + dose.YDirection * j + dose.ZDirection * k;
+                        point = image.DicomToUser(point, plan1);
+                        matrix[(int)(j / yRes), (int)(i / xRes), (int)(k / zRes)] = dose.GetDoseToPoint(point).Dose;
+                    }
+                }
+            }
+            doses.Matrix = matrix;
+            doses.xValues = xValues;
+            doses.yValues = yValues;
+            doses.zValues = zValues;
+            return doses;
+
+        }
     }
 
 }
