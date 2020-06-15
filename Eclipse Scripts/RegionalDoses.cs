@@ -102,14 +102,14 @@ namespace VMS.TPS
                 if ((structure.Name.ToLower().Contains("par"))&& !(structure.Name.ToLower().Contains("opt")))
                 {
                     //this should be a parotid... check its mean dose, use it if its the smallest.
-                    DoseValue dose = CalculateMeanDose(plan1, structure);
-                    if (dose.Dose < meanDose)
+                    DoseValue structDose = CalculateMeanDose(plan1, structure);
+                    if (structDose.Dose < meanDose)
                     {
                         parotid = structure;
                     }
                 }
             }
-            MessageBox.Show(dose.Dose.ToString());
+            MessageBox.Show(structDose.Dose.ToString());
 
 
         }
@@ -131,7 +131,7 @@ namespace VMS.TPS
 
             int xcount = (int)((dose.XRes * dose.XSize) / xres);
             System.Collections.BitArray segmentStride = new System.Collections.BitArray(xcount);
-            double[]() doseArray = new double[xcount](xcount);
+            double[] doseArray = new double[xcount];
             DoseValue.DoseUnit doseUnit = dose.DoseMax3D.Unit;
 
             for (double z = 0; z < dose.ZSize * dose.ZRes; z += zres)
