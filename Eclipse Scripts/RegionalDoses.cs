@@ -1681,37 +1681,7 @@ namespace VMS.TPS
 
         }
 
-        public static int ClosestPoint(double x, double y, double[,] points)
-        {
-            double m = 1000;
-            int closestPoint = 1000;
-            for (int i = 0; i < points.Length / 3; i++)
-            {
-                double diff = Math.Sqrt(Math.Pow((x - points[i, 0]), 2) + Math.Pow((y - points[i, 1]), 2));    //difference between points in xy plane
-                if (diff < m)
-                {
-                    closestPoint = i;
-                    m = diff;
-                }
-            }
-            if (closestPoint == 1000)
-            {
-                MessageBox.Show("Closest Point not found, terminating.");
-            }
-            return closestPoint;
-        }
-        public static double[] InterpolateXY(double[] point1, double[] point2, double z)
-        {
-            double xSlope = (point2[0] - point1[0]) / (point2[2] - point1[2]);
-            double ySlope = (point2[1] - point1[1]) / (point2[2] - point1[2]);
-
-            double newX = point1[0] + xSlope * (z - point1[2]);
-            double newY = point1[1] + ySlope * (z - point1[2]);
-
-            double[] newPoint = new double[3] { newX, newY, z };
-            return newPoint;
-
-        }
+        
         public static double[,] InterpBetweenContours(double[,] a, double[,] b, double zVal)
         //interpolate between contours a and b at the specified z value. (z is between the contours)
         {
