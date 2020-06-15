@@ -74,7 +74,12 @@ namespace VMS.TPS
             for (int z = 0; z < zSlices; z++)
             {
                 VVector[][] contoursOnPlane = ROI[0].GetContoursOnImagePlane(z);
-                
+                if (contoursOnPlane.GetLength(0) == 1)
+                {
+                    contours.Add(contoursOnPlane);
+                }
+
+
             }
 
 
