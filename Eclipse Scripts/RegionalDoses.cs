@@ -53,12 +53,15 @@ namespace VMS.TPS
 
             //Now get the contours. Get the contralateral parotid as parotid with the smallest dose.
             StructureSet structureSet = context.StructureSet;
-            var tuple = GetContours(structureSet, plan1);    //returns contours and organ name.
+            var tuple = GetContours(structureSet, plan1, image);    //returns contours and organ name.
             List<double[,]> contours = tuple.Item1;
             string organName = tuple.Item2;
-            MessageBox.Show(contours[0][0, 2].ToString());
+            List<Structure> ROI = tuple.Item3;
+            //MessageBox.Show(contours[0][0, 2].ToString());
             List<List<double[,]>> choppedContours = Chop(contours, numCutsX, numCutsY, numCutsZ, organName);
             double[,] meanDoses = MeanDoses(choppedContours, doses, SSFactor, SSFactorZ);
+
+
 
 
         }
@@ -147,15 +150,15 @@ namespace VMS.TPS
             double[] zValues = new double[zSize];
             for (int i = 0; i < xSize; i++)
             {
-                xValues[i] = (dose.Origin + dose.XDirection * i).x;
+                xValues[i] = (dose.Origin + dose.XDirection * i * xRes).x;
             }
             for (int i = 0; i < ySize; i++)
             {
-                yValues[i] = (dose.Origin + dose.YDirection * i).y;
+                yValues[i] = (dose.Origin + dose.YDirection * i * yRes).y;
             }
             for (int i = 0; i < zSize; i++)
             {
-                zValues[i] = (dose.Origin + dose.ZDirection * i).z;
+                zValues[i] = (dose.Origin + dose.ZDirection * i * zRes).z;
             }
             //Get the dose matrix
             for (double i = 0; i < xSize * xRes; i += xRes)
@@ -180,7 +183,7 @@ namespace VMS.TPS
 
         }
 
-        public static Tuple<List<double[,]>, string> GetContours(StructureSet structureSet, PlanSetup plan1)
+        public static Tuple<List<double[,]>, string, List<Structure>> GetContours(StructureSet structureSet, PlanSetup plan1, Image image)
         {
             double meanDose = 100000;     //will be updated for each parotid with smaller mean dose.
             List<Structure> ROI = new List<Structure>();    //Saving in a list because I only have read access.
@@ -215,7 +218,7 @@ namespace VMS.TPS
                 if (contoursOnPlane.GetLength(0) > 0)
                 {
                     // will check for the one with the most points, and keep that one.
-                    int keeper = 0;
+                    /*int keeper = 0;
                     int numPoints = 0;
                     for (int cont = 0; cont < contoursOnPlane.GetLength(0); cont++)
                     {
@@ -223,8 +226,8 @@ namespace VMS.TPS
                         {
                             keeper = cont;
                         }
-                    }
-                    contoursTemp.Add(contoursOnPlane[keeper]);
+                    }*/
+                    contoursTemp.Add(contoursOnPlane[0]);
                 }
             }
             //MessageBox.Show(contoursTemp[0][0].z.ToString());
@@ -233,14 +236,17 @@ namespace VMS.TPS
             for (int i = 0; i < contoursTemp.Count; i++)
             {
                 contours.Add(new double[contoursTemp[i].GetLength(0), 3]);
-                for (int j = 0; j < contoursTemp[i].GetLength(0) - 1; j++)
+                for (int j = 0; j < contoursTemp[i].GetLength(0); j++)
                 {
-                    contours[i][j, 0] = contoursTemp[i][j].x;
-                    contours[i][j, 1] = contoursTemp[i][j].y;
-                    contours[i][j, 2] = contoursTemp[i][j].z;
+                    VVector point = image.UserToDicom(contoursTemp[i][j], plan1);
+                    contours[i][j, 0] = (point.x);
+                    contours[i][j, 1] = (point.y);
+                    contours[i][j, 2] = (point.z);
                 }
             }
-            return Tuple.Create(contours, organName);
+            contours = ClosedLooper(contours);
+            contours = IslandRemover(contours);
+            return Tuple.Create(contours, organName, ROI);
         }
 
         public static List<List<double[,]>> Chop(List<double[,]> contoursTemp, int numCutsX, int numCutsY, int numCutsZ, string organName)
@@ -297,6 +303,7 @@ namespace VMS.TPS
             {
                 contours = contoursY;
             }
+
             contours = ReOrder(contours, organName, numCutsX, numCutsY, numCutsZ);
             return contours;
 
@@ -991,6 +998,7 @@ namespace VMS.TPS
 
                 zCuts[i - 1] = contours[contIndex - 1][0, 2] + (volumeGoal * totalVolume - volumeBelow) / avgArea;
             }
+
             return zCuts;
 
 
@@ -1337,9 +1345,11 @@ namespace VMS.TPS
         }
         public static double[,] MeanDoses(List<List<double[,]>> contours, DoseMatrix dose, int SSFactor, int SSFactorZ)
         {
+
+
             double[,,] organDoseBounds = OrganDoseBounds(contours, dose);
             DoseMatrix doseSS = DoseMatrixSuperSampler(dose, organDoseBounds, SSFactor, SSFactorZ);
-            
+
             //Find mean doses:
             double[,] meanDoses = new double[contours.Count + 1, 2];    //second column for # of dose voxels in region. Final row for whole mean
             double x, y, z, minY, maxY, minX, maxX;
@@ -1375,6 +1385,7 @@ namespace VMS.TPS
                                         {
                                             //Now interpolate a contour between the two.
                                             polygon = InterpBetweenContours(contours[region][cont], contours[region][cont + 1], z);
+
                                             //Now point in polygon.
                                             point[0] = x;
                                             point[1] = y;
@@ -1395,6 +1406,7 @@ namespace VMS.TPS
                     }
                 }
             }
+
             double wholeMean = 0;
             int totalPoints = 0;
             for (int i = 0; i < meanDoses.GetLength(0); i++)
@@ -1406,33 +1418,31 @@ namespace VMS.TPS
             wholeMean /= totalPoints;
             meanDoses[meanDoses.GetLength(0) - 1, 0] = wholeMean;
             meanDoses[meanDoses.GetLength(0) - 1, 1] = totalPoints;
+            string output = "";
+            string beginSpace = "         ";    //how much space between columns?
+            string middleSpace = "     ";
+            output += "Regional mean doses (Gy):" + System.Environment.NewLine;
+            output += "SubRegion:  |  Dose:" + System.Environment.NewLine;
+            output += "--------------------" + System.Environment.NewLine;
 
-            //using (StreamWriter outputFile = new StreamWriter(Path.Combine(path, nameInput)))
-            //{
-            //    string beginSpace = "         ";    //how much space between columns?
-            //    string middleSpace = "     ";
-            //    outputFile.WriteLine("Regional mean doses (Gy):");
-            //    outputFile.WriteLine(Environment.NewLine);
-            //    outputFile.WriteLine("SubRegion:  |  Dose:");
-            //    outputFile.WriteLine("--------------------");
+            for (int i = 0; i < meanDoses.GetLength(0) - 1; i++)
+            {
+                if (i == 10)
+                {
+                    beginSpace = "        ";
+                }
+                output += beginSpace + (i + 1) + middleSpace + String.Format("{0:0.00}", meanDoses[i, 0]) + System.Environment.NewLine;
+                output += "--------------------" + System.Environment.NewLine;
+            }
 
-            //    for (int i = 0; i < meanDoses.GetLength(0) - 1; i++)
-            //    {
-            //        if (i == 10)
-            //        {
-            //            beginSpace = "        ";
-            //        }
-            //        outputFile.WriteLine(beginSpace + (i + 1) + middleSpace + String.Format("{0:0.00}", meanDoses[i, 0]));
-            //        outputFile.WriteLine(Environment.NewLine);
-            //        outputFile.WriteLine("--------------------");
-            //    }
+            output += "Whole Mean Dose:    " + String.Format("{0:0.00}", meanDoses[meanDoses.GetLength(0) - 1, 0]);
+            MessageBox.Show(output);
 
-            //    outputFile.WriteLine("Whole Mean Dose:    " + String.Format("{0:0.00}", meanDoses[meanDoses.GetLength(0) - 1, 0]));
-            //}
             return meanDoses;
         }
         public static DoseMatrix DoseMatrixSuperSampler(DoseMatrix dose, double[,,] organDoseBounds, int SSFactor, int SSFactorZ)
         {
+
             //First get the number of matrix elements in each direction encompassing the organ
             int xRange = (int)(organDoseBounds[0, 1, 1] - organDoseBounds[0, 1, 0] + 1);
             int yRange = (int)(organDoseBounds[1, 1, 1] - organDoseBounds[1, 1, 0] + 1);
@@ -1685,7 +1695,7 @@ namespace VMS.TPS
 
         }
 
-        
+
         public static double[,] InterpBetweenContours(double[,] a, double[,] b, double zVal)
         //interpolate between contours a and b at the specified z value. (z is between the contours)
         {
@@ -1769,7 +1779,7 @@ namespace VMS.TPS
             }
             if (numIslands == 0)
             {
-                
+
             }
             else if (numIslands == 1)
             {

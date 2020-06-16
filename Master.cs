@@ -15,8 +15,8 @@ namespace DicomChopper
     {
         static void Main(string[] args)
         {
-            string structPath = @"../../../ExportedPlansEclipse/spstudy_test_002/0Gy/RS.dcm";
-            string dosePath = @"../../../ExportedPlansEclipse/spstudy_test_002/0Gy/RD.dcm";
+            string structPath = @"../../../ExportedPlansEclipse/spstudy_test_001/0Gy/RS.dcm";
+            string dosePath = @"../../../ExportedPlansEclipse/spstudy_test_001/0Gy/RD.dcm";
             //define the number of slices desired in the x,y,z directions:
             int numCutsX = 2;
             int numCutY = 1;
