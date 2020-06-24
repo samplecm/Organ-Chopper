@@ -7,6 +7,7 @@ using System.Windows;
 using VMS.TPS.Common.Model.API;
 using VMS.TPS.Common.Model.Types;
 
+
 namespace VMS.TPS
 {
 
@@ -60,7 +61,33 @@ namespace VMS.TPS
             //MessageBox.Show(contours[0][0, 2].ToString());
             List<List<double[,]>> choppedContours = Chop(contours, numCutsX, numCutsY, numCutsZ, organName);
             double[,] meanDoses = MeanDoses(choppedContours, doses, SSFactor, SSFactorZ, organName);
+            //make CSV for meandoses
+            string fileName = plan1.Id + ".csv";
+            string path = Path.Combine(path, testPatient.Name);
+            using (StreamWriter outputFile = new StreamWriter(Path.Combine(path, fileName)))
+            {
+                outputFile.WriteLine("Regional mean doses (Gy):");
+                outputFile.WriteLine("SubRegion, Dose:");
 
+                for (int i = 0; i < meanDoses.GetLength(0) - 1; i++)
+                {
+                    outputFile.WriteLine((i + 1) + ", " + String.Format("{0:0.00}", meanDoses[i, 0]));
+                }
+
+                outputFile.WriteLine("Whole Mean Dose, " + String.Format("{0:0.00}", meanDoses[meanDoses.GetLength(0) - 1, 0]));
+
+                //Make sure regions in correct order:
+                output += System.Environment.NewLine + "Correct Order test: ";
+                bool correctOrder = RegionOrderingTest18(contours, organName);
+                if (!correctOrder)
+                {
+                    outputFile.WriteLine("Passed");
+                }
+                else
+                {
+                    outputFile.WriteLine("Failed");
+                }            
+            }
 
 
 
@@ -1449,6 +1476,7 @@ namespace VMS.TPS
             }
 
             MessageBox.Show(output);
+
 
             return meanDoses;
         }
