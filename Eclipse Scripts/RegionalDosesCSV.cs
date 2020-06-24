@@ -77,7 +77,7 @@ namespace VMS.TPS
                 }
 
                 outputFile.WriteLine("Whole Mean Dose, " + String.Format("{0:0.00}", meanDoses[meanDoses.GetLength(0) - 1, 0]));
-                outputFile.WriteLine("Whole mean dose error: " + wholeMean.Dose.ToString());
+                outputFile.WriteLine("Whole mean dose error, " + wholeMean.Dose.ToString());
                 
                 bool correctOrder = RegionOrderingTest18(choppedContours, organName);
                 if (correctOrder)
