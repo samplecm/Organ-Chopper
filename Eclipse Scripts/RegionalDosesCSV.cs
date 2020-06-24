@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Collections;
 using System.Text;
+using System.IO;
 using System.Windows;
 using VMS.TPS.Common.Model.API;
 using VMS.TPS.Common.Model.Types;
@@ -58,12 +59,13 @@ namespace VMS.TPS
             List<double[,]> contours = tuple.Item1;
             string organName = tuple.Item2;
             List<Structure> ROI = tuple.Item3;
+            DoseValue wholeMean = CalculateMeanDose(plan1, ROI[0]);
             //MessageBox.Show(contours[0][0, 2].ToString());
             List<List<double[,]>> choppedContours = Chop(contours, numCutsX, numCutsY, numCutsZ, organName);
             double[,] meanDoses = MeanDoses(choppedContours, doses, SSFactor, SSFactorZ, organName);
             //make CSV for meandoses
             string fileName = plan1.Id + ".csv";
-            string path = Path.Combine(path, testPatient.Name);
+            string path = Path.Combine(path, testPatient.LastName);
             using (StreamWriter outputFile = new StreamWriter(Path.Combine(path, fileName)))
             {
                 outputFile.WriteLine("Regional mean doses (Gy):");
@@ -75,11 +77,10 @@ namespace VMS.TPS
                 }
 
                 outputFile.WriteLine("Whole Mean Dose, " + String.Format("{0:0.00}", meanDoses[meanDoses.GetLength(0) - 1, 0]));
-
-                //Make sure regions in correct order:
-                output += System.Environment.NewLine + "Correct Order test: ";
-                bool correctOrder = RegionOrderingTest18(contours, organName);
-                if (!correctOrder)
+                outputFile.WriteLine("Whole mean dose error: " + wholeMean.Dose.ToString());
+                
+                bool correctOrder = RegionOrderingTest18(choppedContours, organName);
+                if (correctOrder)
                 {
                     outputFile.WriteLine("Passed");
                 }
@@ -1467,7 +1468,7 @@ namespace VMS.TPS
             //Make sure regions in correct order:
             output += System.Environment.NewLine + "Correct Order test: ";
             bool correctOrder = RegionOrderingTest18(contours, organName);
-            if (!correctOrder)
+            if (correctOrder)
             {
                 output += "Passed";
             }else
