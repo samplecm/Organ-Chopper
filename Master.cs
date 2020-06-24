@@ -15,8 +15,13 @@ namespace DicomChopper
     {
         static void Main(string[] args)
         {
-            string structPath = @"../../../ExportedPlansEclipse/spstudy_test_001/0Gy/RS.dcm";
-            string dosePath = @"../../../ExportedPlansEclipse/spstudy_test_001/0Gy/RD.dcm";
+            Execute();
+        }
+
+        static void Execute()
+        {
+            string structPath = @"../../../ExportedPlansEclipse/spstudy_test_002/0Gy/RS.dcm";
+            string dosePath = @"../../../ExportedPlansEclipse/spstudy_test_002/0Gy/RD.dcm";
             //define the number of slices desired in the x,y,z directions:
             int numCutsX = 2;
             int numCutY = 1;
@@ -46,9 +51,9 @@ namespace DicomChopper
                 ContourPlotting.Plot(contours);
             }
             //Now load a dose file.
-            DicomDose.MeanDoses(contours, dosePath, patientID, SSFactor, SSFactorZ);
-
-
+            //DicomDose.MeanDoses(contours, dosePath, patientID, SSFactor, SSFactorZ);
+            Testing.RunTests(contours, organName);
+            Console.WriteLine("Press any key to end the program.");
             Console.ReadLine();
         }
     }

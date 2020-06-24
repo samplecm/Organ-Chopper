@@ -79,6 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <Compile Include="Testing.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="EvilDICOM">
