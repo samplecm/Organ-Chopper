@@ -65,7 +65,7 @@ namespace VMS.TPS
             double[,] meanDoses = MeanDoses(choppedContours, doses, SSFactor, SSFactorZ, organName);
             //make CSV for meandoses
             string fileName = plan1.Id + ".csv";
-            string path = Path.Combine(path, testPatient.LastName);
+            string path = Path.Combine(@"\\phsabc.ehcnet.ca\HomeDir\HomeDir02\csample1\Profile\Desktop\Parotid Project\Base Planning Paper\meanDoses", testPatient.LastName);
             using (StreamWriter outputFile = new StreamWriter(Path.Combine(path, fileName)))
             {
                 outputFile.WriteLine("Regional mean doses (Gy):");
@@ -77,8 +77,9 @@ namespace VMS.TPS
                 }
 
                 outputFile.WriteLine("Whole Mean Dose, " + String.Format("{0:0.00}", meanDoses[meanDoses.GetLength(0) - 1, 0]));
-                outputFile.WriteLine("Whole mean dose error, " + wholeMean.Dose.ToString());
-                
+                outputFile.WriteLine("Whole mean dose Eclipse, " + wholeMean.Dose.ToString());
+                outputFile.WriteLine("Whole mean dose Error, " + String.Format("{0:0.00}", ((wholeMean.Dose - meanDoses[meanDoses.GetLength(0) - 1, 0]) / wholeMean.Dose)));
+
                 bool correctOrder = RegionOrderingTest18(choppedContours, organName);
                 if (correctOrder)
                 {
@@ -87,7 +88,7 @@ namespace VMS.TPS
                 else
                 {
                     outputFile.WriteLine("Failed");
-                }            
+                }
             }
 
 
@@ -230,6 +231,7 @@ namespace VMS.TPS
                         ROI.Clear();
                         ROI.Add(structure);
                         count++;
+                        meanDose = structDose.Dose;
                     }
                 }
             }
@@ -1471,7 +1473,8 @@ namespace VMS.TPS
             if (correctOrder)
             {
                 output += "Passed";
-            }else
+            }
+            else
             {
                 output += "Failed";
             }
@@ -2430,4 +2433,3 @@ namespace VMS.TPS
 
 
 }
-
