@@ -59,7 +59,7 @@ namespace VMS.TPS
             List<Structure> ROI = tuple.Item3;
             //MessageBox.Show(contours[0][0, 2].ToString());
             List<List<double[,]>> choppedContours = Chop(contours, numCutsX, numCutsY, numCutsZ, organName);
-            double[,] meanDoses = MeanDoses(choppedContours, doses, SSFactor, SSFactorZ);
+            double[,] meanDoses = MeanDoses(choppedContours, doses, SSFactor, SSFactorZ, organName);
 
 
 
@@ -1343,7 +1343,7 @@ namespace VMS.TPS
             }
             return max;
         }
-        public static double[,] MeanDoses(List<List<double[,]>> contours, DoseMatrix dose, int SSFactor, int SSFactorZ)
+        public static double[,] MeanDoses(List<List<double[,]>> contours, DoseMatrix dose, int SSFactor, int SSFactorZ, string organName)
         {
 
 
@@ -1994,14 +1994,14 @@ namespace VMS.TPS
             }
             for (int i = 0; i < 6; i++)
             {
-                yVals.Add(Stats.SliceMean(1, temp[i])); //add average y value for each region
+                yVals.Add(SliceMean(1, temp[i])); //add average y value for each region
             }
             yVals.Sort();
             for (int i = 0; i < 6; i++)
             {
                 for (int j = 0; j < 3; j++)
                 {
-                    if (Stats.SliceMean(1, temp[i]) == yVals[j])
+                    if (SliceMean(1, temp[i]) == yVals[j])
                     {
                         tempY.Add(temp[i]);
                         tempYIndices.Add(tempIndices[i]);
@@ -2010,7 +2010,7 @@ namespace VMS.TPS
                 }
                 for (int j = 3; j < 6; j++)
                 {
-                    if (Stats.SliceMean(1, temp[i]) == yVals[j])
+                    if (SliceMean(1, temp[i]) == yVals[j])
                     {
                         tempY2.Add(temp[i]);
                         tempY2Indices.Add(tempIndices[i]);
@@ -2021,11 +2021,11 @@ namespace VMS.TPS
 
             for (int i = 0; i < 3; i++)
             {
-                xVals.Add(Stats.SliceMean(0, tempY[i])); //add average y value for each region
+                xVals.Add(SliceMean(0, tempY[i])); //add average y value for each region
             }
             for (int i = 0; i < 3; i++)
             {
-                xVals2.Add(Stats.SliceMean(0, tempY2[i])); //add average y value for each region
+                xVals2.Add(SliceMean(0, tempY2[i])); //add average y value for each region
             }
             xVals.Sort();
             xVals2.Sort();
@@ -2033,17 +2033,17 @@ namespace VMS.TPS
             {
                 for (int i = 0; i < 3; i++)
                 {
-                    if (Stats.SliceMean(0, tempY[i]) == xVals[0])
+                    if (SliceMean(0, tempY[i]) == xVals[0])
                     {
                         actualOrder[tempYIndices[i]] = "caudal - anterior - medial";
 
                     }
-                    if (Stats.SliceMean(0, tempY[i]) == xVals[1])
+                    if (SliceMean(0, tempY[i]) == xVals[1])
                     {
                         actualOrder[tempYIndices[i]] = "caudal - anterior - middle";
 
                     }
-                    if (Stats.SliceMean(0, tempY[i]) == xVals[2])
+                    if (SliceMean(0, tempY[i]) == xVals[2])
                     {
                         actualOrder[tempYIndices[i]] = "caudal - anterior - lateral";
 
@@ -2051,17 +2051,17 @@ namespace VMS.TPS
                 }
                 for (int i = 0; i < 3; i++)
                 {
-                    if (Stats.SliceMean(0, tempY2[i]) == xVals2[0])
+                    if (SliceMean(0, tempY2[i]) == xVals2[0])
                     {
                         actualOrder[tempY2Indices[i]] = "caudal - posterior - medial";
 
                     }
-                    if (Stats.SliceMean(0, tempY2[i]) == xVals2[1])
+                    if (SliceMean(0, tempY2[i]) == xVals2[1])
                     {
                         actualOrder[tempY2Indices[i]] = "caudal - posterior - middle";
 
                     }
-                    if (Stats.SliceMean(0, tempY2[i]) == xVals2[2])
+                    if (SliceMean(0, tempY2[i]) == xVals2[2])
                     {
                         actualOrder[tempY2Indices[i]] = "caudal - posterior - lateral";
 
@@ -2072,17 +2072,17 @@ namespace VMS.TPS
             {
                 for (int i = 0; i < 3; i++)
                 {
-                    if (Stats.SliceMean(0, tempY[i]) == xVals[0])
+                    if (SliceMean(0, tempY[i]) == xVals[0])
                     {
                         actualOrder[tempYIndices[i]] = "caudal - anterior - lateral";
 
                     }
-                    if (Stats.SliceMean(0, tempY[i]) == xVals[1])
+                    if (SliceMean(0, tempY[i]) == xVals[1])
                     {
                         actualOrder[tempYIndices[i]] = "caudal - anterior - middle";
 
                     }
-                    if (Stats.SliceMean(0, tempY[i]) == xVals[2])
+                    if (SliceMean(0, tempY[i]) == xVals[2])
                     {
                         actualOrder[tempYIndices[i]] = "caudal - anterior - medial";
 
@@ -2090,17 +2090,17 @@ namespace VMS.TPS
                 }
                 for (int i = 0; i < 3; i++)
                 {
-                    if (Stats.SliceMean(0, tempY2[i]) == xVals2[0])
+                    if (SliceMean(0, tempY2[i]) == xVals2[0])
                     {
                         actualOrder[tempY2Indices[i]] = "caudal - posterior - lateral";
 
                     }
-                    if (Stats.SliceMean(0, tempY2[i]) == xVals2[1])
+                    if (SliceMean(0, tempY2[i]) == xVals2[1])
                     {
                         actualOrder[tempY2Indices[i]] = "caudal - posterior - middle";
 
                     }
-                    if (Stats.SliceMean(0, tempY2[i]) == xVals2[2])
+                    if (SliceMean(0, tempY2[i]) == xVals2[2])
                     {
                         actualOrder[tempY2Indices[i]] = "caudal - posterior - medial";
 
@@ -2130,14 +2130,14 @@ namespace VMS.TPS
             }
             for (int i = 0; i < 6; i++)
             {
-                yVals.Add(Stats.SliceMean(1, temp[i])); //add average y value for each region
+                yVals.Add(SliceMean(1, temp[i])); //add average y value for each region
             }
             yVals.Sort();
             for (int i = 0; i < 6; i++)
             {
                 for (int j = 0; j < 3; j++)
                 {
-                    if (Stats.SliceMean(1, temp[i]) == yVals[j])
+                    if (SliceMean(1, temp[i]) == yVals[j])
                     {
                         tempY.Add(temp[i]);
                         tempYIndices.Add(tempIndices[i]);
@@ -2146,7 +2146,7 @@ namespace VMS.TPS
                 }
                 for (int j = 3; j < 6; j++)
                 {
-                    if (Stats.SliceMean(1, temp[i]) == yVals[j])
+                    if (SliceMean(1, temp[i]) == yVals[j])
                     {
                         tempY2.Add(temp[i]);
                         tempY2Indices.Add(tempIndices[i]);
@@ -2157,11 +2157,11 @@ namespace VMS.TPS
 
             for (int i = 0; i < 3; i++)
             {
-                xVals.Add(Stats.SliceMean(0, tempY[i])); //add average y value for each region
+                xVals.Add(SliceMean(0, tempY[i])); //add average y value for each region
             }
             for (int i = 0; i < 3; i++)
             {
-                xVals2.Add(Stats.SliceMean(0, tempY2[i])); //add average y value for each region
+                xVals2.Add(SliceMean(0, tempY2[i])); //add average y value for each region
             }
             xVals.Sort();
             xVals2.Sort();
@@ -2169,17 +2169,17 @@ namespace VMS.TPS
             {
                 for (int i = 0; i < 3; i++)
                 {
-                    if (Stats.SliceMean(0, tempY[i]) == xVals[0])
+                    if (SliceMean(0, tempY[i]) == xVals[0])
                     {
                         actualOrder[tempYIndices[i]] = "middle - anterior - medial";
 
                     }
-                    if (Stats.SliceMean(0, tempY[i]) == xVals[1])
+                    if (SliceMean(0, tempY[i]) == xVals[1])
                     {
                         actualOrder[tempYIndices[i]] = "middle - anterior - middle";
 
                     }
-                    if (Stats.SliceMean(0, tempY[i]) == xVals[2])
+                    if (SliceMean(0, tempY[i]) == xVals[2])
                     {
                         actualOrder[tempYIndices[i]] = "middle - anterior - lateral";
 
@@ -2187,17 +2187,17 @@ namespace VMS.TPS
                 }
                 for (int i = 0; i < 3; i++)
                 {
-                    if (Stats.SliceMean(0, tempY2[i]) == xVals2[0])
+                    if (SliceMean(0, tempY2[i]) == xVals2[0])
                     {
                         actualOrder[tempY2Indices[i]] = "middle - posterior - medial";
 
                     }
-                    if (Stats.SliceMean(0, tempY2[i]) == xVals2[1])
+                    if (SliceMean(0, tempY2[i]) == xVals2[1])
                     {
                         actualOrder[tempY2Indices[i]] = "middle - posterior - middle";
 
                     }
-                    if (Stats.SliceMean(0, tempY2[i]) == xVals2[2])
+                    if (SliceMean(0, tempY2[i]) == xVals2[2])
                     {
                         actualOrder[tempY2Indices[i]] = "middle - posterior - lateral";
 
@@ -2208,17 +2208,17 @@ namespace VMS.TPS
             {
                 for (int i = 0; i < 3; i++)
                 {
-                    if (Stats.SliceMean(0, tempY[i]) == xVals[0])
+                    if (SliceMean(0, tempY[i]) == xVals[0])
                     {
                         actualOrder[tempYIndices[i]] = "middle - anterior - lateral";
 
                     }
-                    if (Stats.SliceMean(0, tempY[i]) == xVals[1])
+                    if (SliceMean(0, tempY[i]) == xVals[1])
                     {
                         actualOrder[tempYIndices[i]] = "middle - anterior - middle";
 
                     }
-                    if (Stats.SliceMean(0, tempY[i]) == xVals[2])
+                    if (SliceMean(0, tempY[i]) == xVals[2])
                     {
                         actualOrder[tempYIndices[i]] = "middle - anterior - medial";
 
@@ -2226,17 +2226,17 @@ namespace VMS.TPS
                 }
                 for (int i = 0; i < 3; i++)
                 {
-                    if (Stats.SliceMean(0, tempY2[i]) == xVals2[0])
+                    if (SliceMean(0, tempY2[i]) == xVals2[0])
                     {
                         actualOrder[tempY2Indices[i]] = "middle - posterior - lateral";
 
                     }
-                    if (Stats.SliceMean(0, tempY2[i]) == xVals2[1])
+                    if (SliceMean(0, tempY2[i]) == xVals2[1])
                     {
                         actualOrder[tempY2Indices[i]] = "middle - posterior - middle";
 
                     }
-                    if (Stats.SliceMean(0, tempY2[i]) == xVals2[2])
+                    if (SliceMean(0, tempY2[i]) == xVals2[2])
                     {
                         actualOrder[tempY2Indices[i]] = "middle - posterior - medial";
 
@@ -2266,14 +2266,14 @@ namespace VMS.TPS
             }
             for (int i = 0; i < 6; i++)
             {
-                yVals.Add(Stats.SliceMean(1, temp[i])); //add average y value for each region
+                yVals.Add(SliceMean(1, temp[i])); //add average y value for each region
             }
             yVals.Sort();
             for (int i = 0; i < 6; i++)
             {
                 for (int j = 0; j < 3; j++)
                 {
-                    if (Stats.SliceMean(1, temp[i]) == yVals[j])
+                    if (SliceMean(1, temp[i]) == yVals[j])
                     {
                         tempY.Add(temp[i]);
                         tempYIndices.Add(tempIndices[i]);
@@ -2282,7 +2282,7 @@ namespace VMS.TPS
                 }
                 for (int j = 3; j < 6; j++)
                 {
-                    if (Stats.SliceMean(1, temp[i]) == yVals[j])
+                    if (SliceMean(1, temp[i]) == yVals[j])
                     {
                         tempY2.Add(temp[i]);
                         tempY2Indices.Add(tempIndices[i]);
@@ -2293,11 +2293,11 @@ namespace VMS.TPS
 
             for (int i = 0; i < 3; i++)
             {
-                xVals.Add(Stats.SliceMean(0, tempY[i])); //add average y value for each region
+                xVals.Add(SliceMean(0, tempY[i])); //add average y value for each region
             }
             for (int i = 0; i < 3; i++)
             {
-                xVals2.Add(Stats.SliceMean(0, tempY2[i])); //add average y value for each region
+                xVals2.Add(SliceMean(0, tempY2[i])); //add average y value for each region
             }
             xVals.Sort();
             xVals2.Sort();
@@ -2305,17 +2305,17 @@ namespace VMS.TPS
             {
                 for (int i = 0; i < 3; i++)
                 {
-                    if (Stats.SliceMean(0, tempY[i]) == xVals[0])
+                    if (SliceMean(0, tempY[i]) == xVals[0])
                     {
                         actualOrder[tempYIndices[i]] = "superior - anterior - medial";
 
                     }
-                    if (Stats.SliceMean(0, tempY[i]) == xVals[1])
+                    if (SliceMean(0, tempY[i]) == xVals[1])
                     {
                         actualOrder[tempYIndices[i]] = "superior - anterior - middle";
 
                     }
-                    if (Stats.SliceMean(0, tempY[i]) == xVals[2])
+                    if (SliceMean(0, tempY[i]) == xVals[2])
                     {
                         actualOrder[tempYIndices[i]] = "superior - anterior - lateral";
 
@@ -2323,17 +2323,17 @@ namespace VMS.TPS
                 }
                 for (int i = 0; i < 3; i++)
                 {
-                    if (Stats.SliceMean(0, tempY2[i]) == xVals2[0])
+                    if (SliceMean(0, tempY2[i]) == xVals2[0])
                     {
                         actualOrder[tempY2Indices[i]] = "superior - posterior - medial";
 
                     }
-                    if (Stats.SliceMean(0, tempY2[i]) == xVals2[1])
+                    if (SliceMean(0, tempY2[i]) == xVals2[1])
                     {
                         actualOrder[tempY2Indices[i]] = "superior - posterior - middle";
 
                     }
-                    if (Stats.SliceMean(0, tempY2[i]) == xVals2[2])
+                    if (SliceMean(0, tempY2[i]) == xVals2[2])
                     {
                         actualOrder[tempY2Indices[i]] = "superior - posterior - lateral";
 
@@ -2344,17 +2344,17 @@ namespace VMS.TPS
             {
                 for (int i = 0; i < 3; i++)
                 {
-                    if (Stats.SliceMean(0, tempY[i]) == xVals[0])
+                    if (SliceMean(0, tempY[i]) == xVals[0])
                     {
                         actualOrder[tempYIndices[i]] = "superior - anterior - lateral";
 
                     }
-                    if (Stats.SliceMean(0, tempY[i]) == xVals[1])
+                    if (SliceMean(0, tempY[i]) == xVals[1])
                     {
                         actualOrder[tempYIndices[i]] = "superior - anterior - middle";
 
                     }
-                    if (Stats.SliceMean(0, tempY[i]) == xVals[2])
+                    if (SliceMean(0, tempY[i]) == xVals[2])
                     {
                         actualOrder[tempYIndices[i]] = "superior - anterior - medial";
 
@@ -2362,17 +2362,17 @@ namespace VMS.TPS
                 }
                 for (int i = 0; i < 3; i++)
                 {
-                    if (Stats.SliceMean(0, tempY2[i]) == xVals2[0])
+                    if (SliceMean(0, tempY2[i]) == xVals2[0])
                     {
                         actualOrder[tempY2Indices[i]] = "superior - posterior - lateral";
 
                     }
-                    if (Stats.SliceMean(0, tempY2[i]) == xVals2[1])
+                    if (SliceMean(0, tempY2[i]) == xVals2[1])
                     {
                         actualOrder[tempY2Indices[i]] = "superior - posterior - middle";
 
                     }
-                    if (Stats.SliceMean(0, tempY2[i]) == xVals2[2])
+                    if (SliceMean(0, tempY2[i]) == xVals2[2])
                     {
                         actualOrder[tempY2Indices[i]] = "superior - posterior - medial";
 
