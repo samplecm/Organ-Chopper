@@ -111,7 +111,7 @@ namespace DicomChopper.Geom
             }
 
             double x, y, z;
-            double[,] c = new double[a.GetLength(0), 2];
+            double[,] c = new double[a.GetLength(0), 3];
 
             for (int i = 0; i < a.GetLength(0); i++)
             {

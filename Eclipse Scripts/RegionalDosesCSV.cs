@@ -55,7 +55,8 @@ namespace VMS.TPS
 
             //Now get the contours. Get the contralateral parotid as parotid with the smallest dose.
             StructureSet structureSet = context.StructureSet;
-            var tuple = GetContours(structureSet, plan1, image);    //returns contours and organ name.
+            var tuple = GetContours(structureSet, plan1, image);
+            //returns contours and organ name.
             List<double[,]> contours = tuple.Item1;
             string organName = tuple.Item2;
             List<Structure> ROI = tuple.Item3;
@@ -219,6 +220,7 @@ namespace VMS.TPS
             DoseValue structDose;
             int count = 0;
             string organName = " ";
+            string name = "";
             foreach (Structure structure in structureSet.Structures)
             {
                 organName = structure.Name;
@@ -232,6 +234,8 @@ namespace VMS.TPS
                         ROI.Add(structure);
                         count++;
                         meanDose = structDose.Dose;
+                        name = structure.Name;
+
                     }
                 }
             }
@@ -276,7 +280,7 @@ namespace VMS.TPS
             }
             contours = ClosedLooper(contours);
             contours = IslandRemover(contours);
-            return Tuple.Create(contours, organName, ROI);
+            return Tuple.Create(contours, name, ROI);
         }
 
         public static List<List<double[,]>> Chop(List<double[,]> contoursTemp, int numCutsX, int numCutsY, int numCutsZ, string organName)
@@ -1379,7 +1383,6 @@ namespace VMS.TPS
 
             double[,,] organDoseBounds = OrganDoseBounds(contours, dose);
             DoseMatrix doseSS = DoseMatrixSuperSampler(dose, organDoseBounds, SSFactor, SSFactorZ);
-
             //Find mean doses:
             double[,] meanDoses = new double[contours.Count + 1, 2];    //second column for # of dose voxels in region. Final row for whole mean
             double x, y, z, minY, maxY, minX, maxX;
@@ -1414,8 +1417,8 @@ namespace VMS.TPS
                                         if ((x > minX) && (x < maxX) && (y > minY) && (y < maxY))
                                         {
                                             //Now interpolate a contour between the two.
-                                            polygon = InterpBetweenContours(contours[region][cont], contours[region][cont + 1], z);
 
+                                            polygon = InterpBetweenContours(contours[region][cont], contours[region][cont + 1], z);
                                             //Now point in polygon.
                                             point[0] = x;
                                             point[1] = y;
@@ -1436,7 +1439,6 @@ namespace VMS.TPS
                     }
                 }
             }
-
             double wholeMean = 0;
             int totalPoints = 0;
             for (int i = 0; i < meanDoses.GetLength(0); i++)
@@ -1754,7 +1756,7 @@ namespace VMS.TPS
             }
 
             double x, y, z;
-            double[,] c = new double[a.GetLength(0), 2];
+            double[,] c = new double[a.GetLength(0), 3];
 
             for (int i = 0; i < a.GetLength(0); i++)
             {
