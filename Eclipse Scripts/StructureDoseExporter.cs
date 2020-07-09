@@ -51,19 +51,20 @@ namespace VMS.TPS
             organNames[2] = ("cord");//2
             organNames[3] = ("cordPRV");//3
             organNames[4] = ("PTV70");//4
-            organNames[5] = ("PTV63");//5
-            organNames[6] = ("PTV60");//6
-            organNames[7] = ("PTV56");//7
-            organNames[8] = ("PTV54");//8
-            organNames[9] = ("PTV50");//9
-            organNames[10] = ("PTV45");//10
-            organNames[11] = ("PTV35");//11
-            organNames[12] = ("RPar");//12
-            organNames[13] = ("LPar");//13
-            organNames[14] = ("RSub");//14
-            organNames[15] = ("LSub");//15
-            organNames[16] = ("OCav");//16
-            organNames[17] = ("Lar");//17
+            organNames[5] = ("PTV66");
+            organNames[6] = ("PTV63");//5
+            organNames[7] = ("PTV60");//6
+            organNames[8] = ("PTV56");//7
+            organNames[9] = ("PTV54");//8
+            organNames[10] = ("PTV50");//9
+            organNames[11] = ("PTV45");//10
+            organNames[12] = ("PTV35");//11
+            organNames[13] = ("RPar");//12
+            organNames[14] = ("LPar");//13
+            organNames[15] = ("RSub");//14
+            organNames[16] = ("LSub");//15
+            organNames[17] = ("OCav");//16
+            organNames[18] = ("Lar");//17
 
             //Make the CSV: 
             DoseExporter(structureSet, organDoses, organNames, plan1, testPatient);
@@ -81,79 +82,86 @@ namespace VMS.TPS
                 string organName = structure.Name;
                 var structDose = CalculateMeanDose(plan1, structure);
                 double dose = structDose.Dose;
+                DVHData dvh = plan1.GetDVHCumulativeData(structure, DoseValuePresentation.Absolute, VolumePresentation.AbsoluteCm3, 0.01);
+                double maxDose = dvh.MaxDose;
+
 
                     ;
                 if ((organName.ToLower().Contains("st")) && !(organName.ToLower().Contains("prv")))
                 {
-                    organDoses[0] = dose;
+                    organDoses[0] = maxDose;
                 }
                 else if ((organName.ToLower().Contains("st")) && (organName.ToLower().Contains("prv")))
                 {
-                    organDoses[1] = dose;
+                    organDoses[1] = maxDose;
                 }
                 else if ((organName.ToLower().Contains("cord")) && !(organName.ToLower().Contains("prv")))
                 {
-                    organDoses[2] = dose;
+                    organDoses[2] = maxDose;
                 }
                 else if ((organName.ToLower().Contains("cord")) && (organName.ToLower().Contains("prv")))
                 {
-                    organDoses[3] = dose;
+                    organDoses[3] = maxDose;
                 }
                 else if ((organName.ToLower().Contains("ptv")) && (organName.ToLower().Contains("70")))
                 {
                     organDoses[4] = dose;
                 }
-                else if ((organName.ToLower().Contains("ptv")) && (organName.ToLower().Contains("63")))
+                else if ((organName.ToLower().Contains("ptv")) && (organName.ToLower().Contains("66")))
                 {
                     organDoses[5] = dose;
                 }
-                else if ((organName.ToLower().Contains("ptv")) && (organName.ToLower().Contains("60")))
+                else if ((organName.ToLower().Contains("ptv")) && (organName.ToLower().Contains("63")))
                 {
                     organDoses[6] = dose;
                 }
-                else if ((organName.ToLower().Contains("ptv")) && (organName.ToLower().Contains("56")))
+                else if ((organName.ToLower().Contains("ptv")) && (organName.ToLower().Contains("60")))
                 {
                     organDoses[7] = dose;
                 }
-                else if ((organName.ToLower().Contains("ptv")) && (organName.ToLower().Contains("54")))
+                else if ((organName.ToLower().Contains("ptv")) && (organName.ToLower().Contains("56")))
                 {
                     organDoses[8] = dose;
                 }
-                else if ((organName.ToLower().Contains("ptv")) && (organName.ToLower().Contains("50")))
+                else if ((organName.ToLower().Contains("ptv")) && (organName.ToLower().Contains("54")))
                 {
                     organDoses[9] = dose;
                 }
-                else if ((organName.ToLower().Contains("ptv")) && (organName.ToLower().Contains("45")))
+                else if ((organName.ToLower().Contains("ptv")) && (organName.ToLower().Contains("50")))
                 {
                     organDoses[10] = dose;
                 }
-                else if ((organName.ToLower().Contains("ptv")) && (organName.ToLower().Contains("35")))
+                else if ((organName.ToLower().Contains("ptv")) && (organName.ToLower().Contains("45")))
                 {
                     organDoses[11] = dose;
                 }
-                else if ((organName.ToLower().Contains("par")) && (organName.ToLower().Contains("r")) && !(organName.ToLower().Contains("opt")))
+                else if ((organName.ToLower().Contains("ptv")) && (organName.ToLower().Contains("35")))
                 {
                     organDoses[12] = dose;
                 }
-                else if ((organName.ToLower().Contains("par")) && (organName.ToLower().Contains("l")) && !(organName.ToLower().Contains("opt")))
+                else if ((organName.ToLower().Contains("par")) && (organName.ToLower().Contains("r")) && !(organName.ToLower().Contains("opt")))
                 {
                     organDoses[13] = dose;
                 }
-                else if ((organName.ToLower().Contains("subm")) && (organName.ToLower().Contains("l")) && !(organName.ToLower().Contains("opt")))
+                else if ((organName.ToLower().Contains("par")) && (organName.ToLower().Contains("l")) && !(organName.ToLower().Contains("opt")))
                 {
                     organDoses[14] = dose;
                 }
-                else if ((organName.ToLower().Contains("subm")) && (organName.ToLower().Contains("l")) && !(organName.ToLower().Contains("opt")))
+                else if ((organName.ToLower().Contains("subm")) && (organName.ToLower().Contains("r")) && !(organName.ToLower().Contains("opt")))
                 {
                     organDoses[15] = dose;
                 }
-                else if ((organName.ToLower().Contains("cav")) && (organName.ToLower().Contains("o")))
+                else if ((organName.ToLower().Contains("subm")) && (organName.ToLower().Contains("l")) && !(organName.ToLower().Contains("opt")))
                 {
                     organDoses[16] = dose;
                 }
-                else if ((organName.ToLower().Contains("lar")))
+                else if ((organName.ToLower().Contains("cav")) && (organName.ToLower().Contains("o")))
                 {
                     organDoses[17] = dose;
+                }
+                else if ((organName.ToLower().Contains("lar")))
+                {
+                    organDoses[18] = dose;
                 }
             }
             //Export to a CSV
@@ -196,7 +204,7 @@ namespace VMS.TPS
             {
                 for (double y = 0; y < dose.YSize * dose.YRes; y += yres)
                 {
-                    // sum of dose values inside of structure to the power of 'a' etc. if a = 1 then its the mean
+        
                     VVector start = dose.Origin +
                                     dose.YDirection * y +
                                     dose.ZDirection * z;
