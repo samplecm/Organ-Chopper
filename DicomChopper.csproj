@@ -69,6 +69,9 @@
     <Compile Include="DICOMParsing\DicomParsing.cs" />
     <Compile Include="Doses\DicomDose.cs" />
     <Compile Include="Doses\DoseMatrix.cs" />
+    <Compile Include="Eclipse Scripts\RegionalDoses.cs" />
+    <Compile Include="Eclipse Scripts\RegionalDosesCSV.cs" />
+    <Compile Include="Eclipse Scripts\StructureDoseExporter.cs" />
     <Compile Include="Geom\Geometry.cs" />
     <Compile Include="Geom\Stats.cs" />
     <Compile Include="GnuPlot.cs" />
