@@ -139,7 +139,7 @@ namespace VMS.TPS
                 {
                     organDoses[12] = dose;
                 }
-                else if ((organName.ToLower().Contains("par")) && (organName.ToLower().Contains("r")) && !(organName.ToLower().Contains("opt")))
+                else if ((organName.ToLower().Contains("par")) && (organName.ToLower().Contains("r")) && !(organName.ToLower().Contains("opt")) && !(organName.ToLower().Contains("l")))
                 {
                     organDoses[13] = dose;
                 }
