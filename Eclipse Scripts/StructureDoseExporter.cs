@@ -44,8 +44,8 @@ namespace VMS.TPS
             //Get the structures: 
             StructureSet structureSet = context.StructureSet;
             //Make A list for structure names, and a list for structure mean doses
-            double[] organDoses = new double[18];
-            string[] organNames = new string[18];
+            double[] organDoses = new double[19];
+            string[] organNames = new string[19];
             organNames[0] = ("stem"); //0
             organNames[1] = ("stemPRV");//1
             organNames[2] = ("cord");//2
@@ -83,7 +83,7 @@ namespace VMS.TPS
                 var structDose = CalculateMeanDose(plan1, structure);
                 double dose = structDose.Dose;
                 DVHData dvh = plan1.GetDVHCumulativeData(structure, DoseValuePresentation.Absolute, VolumePresentation.AbsoluteCm3, 0.01);
-                double maxDose = dvh.MaxDose;
+                double maxDose = dvh.MaxDose.Dose;
 
 
                     ;
@@ -167,7 +167,7 @@ namespace VMS.TPS
             //Export to a CSV
             //make CSV for meandoses
             string fileName = plan1.Id + "_organDoses.csv";
-            string path = Path.Combine(@"\\phsabc.ehcnet.ca\HomeDir\HomeDir02\csample1\Profile\Desktop\Parotid Project\Base Planning Paper\meanDoses", testPatient.LastName);
+            string path = Path.Combine(@"\\phsabc.ehcnet.ca\HomeDir\HomeDir02\csample1\Profile\Desktop\Parotid Project\Base Planning\meanDoses", testPatient.LastName);
             using (StreamWriter outputFile = new StreamWriter(Path.Combine(path, fileName)))
             {
                 outputFile.WriteLine("Organ mean doses (Gy):");
