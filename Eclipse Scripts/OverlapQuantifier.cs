@@ -19,8 +19,6 @@ namespace VMS.TPS
             int numCutsX = 2;
             int numCutsY = 1;
             int numCutsZ = 2;
-            int SSFactor = 4; //supersampling factors
-            int SSFactorZ = 1;
             // Check for patient loaded
             if (context.Patient == null)
             {
