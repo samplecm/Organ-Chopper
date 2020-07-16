@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Windows.Shapes;
 using System.Windows.Media;
+using System.IO;
 using System.Windows;
 using VMS.TPS.Common.Model.API;
 using VMS.TPS.Common.Model.Types;
@@ -57,21 +58,23 @@ namespace VMS.TPS
             List<Structure> PTVs = GetStructuresPTV(structureSet, plan1, image);
 
             //returns contours and parotid name.
+            var tuple2 = OverlapValues(choppedContours, PTVs, ROI);
 
-
-            bool[] overlapValues = OverlapValues(choppedContours, PTVs, ROI);
-            /*
+            bool[] overlapValues = tuple2.Item1;
+            double overlapPercent = tuple2.Item2;
+            
             //make CSV for meandoses
-            string fileName = plan1.Id + "_Overlap.csv";
-            string path = Path.Combine(@"\\phsabc.ehcnet.ca\HomeDir\HomeDir02\csample1\Profile\Desktop\Parotid Project\Base Planning", testPatient.LastName);
-            using (StreamWriter outputFile = new StreamWriter(Path.Combine(path, fileName)))
+            string fileName = "Overlap.csv";
+            string path = System.IO.Path.Combine(@"\\phsabc.ehcnet.ca\HomeDir\HomeDir02\csample1\Profile\Desktop\Parotid Project\Base Planning\meanDoses", testPatient.LastName);
+            using (StreamWriter outputFile = new StreamWriter(System.IO.Path.Combine(path, fileName)))
             {
-                for (int i = 0; i < overlapValues.GetLength(0) - 1; i++)
+                for (int i = 0; i < overlapValues.GetLength(0); i++)
                 {
-                    outputFile.WriteLine((i + 1) + ", " + String.Format("{0:0.00}", overlapValues[i, 0]));
-                }       
+                    outputFile.WriteLine((i + 1) + ", " + String.Format("{0:0}", Convert.ToInt32(overlapValues[i])));
+                }
+                outputFile.WriteLine("Overlap Percent, " + String.Format("{0:0.0}", overlapPercent));
             }
-            */
+            
         }
 
 
@@ -123,7 +126,13 @@ namespace VMS.TPS
                     }
                 }
             }
-            ROI.Add(ROI_opt[0]);
+            try
+            {
+                ROI.Add(ROI_opt[0]);
+            }catch
+            {
+                ROI.Add(ROI[0]);
+            }
 
             List<VVector[]> contoursTemp = new List<VVector[]>();
             //ROI is now a list with one structure; the one of interest.
@@ -1369,7 +1378,7 @@ namespace VMS.TPS
             }
             return arr;
         }
-        public static bool[] OverlapValues(List<List<double[,]>> parotid, List<Structure> PTVs, List<Structure> ROI)
+        public static Tuple<bool[], double> OverlapValues(List<List<double[,]>> parotid, List<Structure> PTVs, List<Structure> ROI)
         {
             
             bool[] overlapValues = new bool[parotid.Count];
@@ -1464,7 +1473,7 @@ namespace VMS.TPS
             MessageBox.Show(output);
 
 
-            return overlapValues;
+            return Tuple.Create(overlapValues, overlapFrac);
         }
 
         public static double Area(double[,] pointSet)
