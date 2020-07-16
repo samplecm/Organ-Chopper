@@ -1,12 +1,12 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Collections;
-using System.Text;
-using System.IO;
+using System.Windows.Shapes;
+using System.Windows.Media;
 using System.Windows;
 using VMS.TPS.Common.Model.API;
 using VMS.TPS.Common.Model.Types;
+
 
 
 namespace VMS.TPS
@@ -14,6 +14,7 @@ namespace VMS.TPS
 
     public class Script
     {
+
         public void Execute(ScriptContext context)
         {
             int numCutsX = 2;
@@ -45,6 +46,7 @@ namespace VMS.TPS
             //Now get the contours. Get the contralateral parotid as parotid with the smallest dose.
             StructureSet structureSet = context.StructureSet;
             var tuple = GetContours(structureSet, plan1, image);
+
             //returns contours and parotid name.
             List<double[,]> contours = tuple.Item1;
             string organName = tuple.Item2;
@@ -52,14 +54,16 @@ namespace VMS.TPS
 
             List<List<double[,]>> choppedContours = Chop(contours, numCutsX, numCutsY, numCutsZ, organName);
 
-            List<List<double[,]>> PTVcontours = GetContoursPTV(structureSet, plan1, image);
-            //returns contours and parotid name.
-     
+            List<Structure> PTVs = GetStructuresPTV(structureSet, plan1, image);
 
-            double[,] overlapValues = OverlapValues(choppedContours, PTVcontours);
+            //returns contours and parotid name.
+
+
+            bool[] overlapValues = OverlapValues(choppedContours, PTVs, ROI);
+            /*
             //make CSV for meandoses
             string fileName = plan1.Id + "_Overlap.csv";
-            string path = Path.Combine(@"\\phsabc.ehcnet.ca\HomeDir\HomeDir02\csample1\Profile\Desktop\Parotid Project\Base Planning Paper\meanDoses", testPatient.LastName);
+            string path = Path.Combine(@"\\phsabc.ehcnet.ca\HomeDir\HomeDir02\csample1\Profile\Desktop\Parotid Project\Base Planning", testPatient.LastName);
             using (StreamWriter outputFile = new StreamWriter(Path.Combine(path, fileName)))
             {
                 for (int i = 0; i < overlapValues.GetLength(0) - 1; i++)
@@ -67,13 +71,16 @@ namespace VMS.TPS
                     outputFile.WriteLine((i + 1) + ", " + String.Format("{0:0.00}", overlapValues[i, 0]));
                 }       
             }
+            */
         }
 
-        
+
         public static Tuple<List<double[,]>, string, List<Structure>> GetContours(StructureSet structureSet, PlanSetup plan1, Image image)
         {
             double meanDose = 100000;     //will be updated for each parotid with smaller mean dose.
-            List<Structure> ROI = new List<Structure>();    //Saving in a list because I only have read access.
+            List<Structure> ROI = new List<Structure>();
+            List<Structure> ROI_opt = new List<Structure>();
+
             double structDose;
             int count = 0;
             string organName = " ";
@@ -97,7 +104,27 @@ namespace VMS.TPS
                     }
                 }
             }
-            
+            //Get the opti version too
+            foreach (Structure structure in structureSet.Structures)
+            {
+                organName = structure.Name;
+                if ((organName.ToLower().Contains("par")) && (organName.ToLower().Contains("opt")))
+                {
+                    //this should be a parotid... check its mean dose, use it if its the smallest.
+                    DVHData dvh = plan1.GetDVHCumulativeData(structure, DoseValuePresentation.Absolute, VolumePresentation.AbsoluteCm3, 0.01);
+                    structDose = dvh.MeanDose.Dose;
+                    if (structDose < meanDose)
+                    {
+                        ROI_opt.Clear();
+                        ROI_opt.Add(structure);
+                        meanDose = structDose;
+                        name = structure.Name;
+
+                    }
+                }
+            }
+            ROI.Add(ROI_opt[0]);
+
             List<VVector[]> contoursTemp = new List<VVector[]>();
             //ROI is now a list with one structure; the one of interest.
             int zSlices = structureSet.Image.ZSize;
@@ -142,64 +169,81 @@ namespace VMS.TPS
 
         public static List<List<double[,]>> GetContoursPTV(StructureSet structureSet, PlanSetup plan1, Image image)
         {
-          
+
             List<Structure> ROI = new List<Structure>();    //Saving in a list because I only have read access.
             string organName = "";
+            List<VVector[]> contoursTemp = new List<VVector[]>();
             foreach (Structure structure in structureSet.Structures)
             {
                 organName = structure.Name;
                 if (organName.ToLower().Contains("ptv"))
-                { 
-                        ROI.Add(structure);
-                
+                {
+                    ROI.Add(structure);
+
                 }
             }
             List<List<double[,]>> contours = new List<List<double[,]>>();
-            int contourCount = 0; //iterate through PTVs
-            foreach (Structure structure in ROI)
+            for (int l = 0; l < ROI.Count; l++)
             {
-                List<VVector[]> contoursTemp = new List<VVector[]>();
+                contours.Add(new List<double[,]>());
+            }
+            for (int contourCount = 0; contourCount < ROI.Count; contourCount++)
+            {
+                contoursTemp.Clear();
                 //ROI is now a list with one structure; the one of interest.
                 int zSlices = structureSet.Image.ZSize;
 
                 for (int z = 0; z < zSlices; z++)
                 {
-                    VVector[][] contoursOnPlane = ROI[0].GetContoursOnImagePlane(z);
+                    VVector[][] contoursOnPlane = ROI[contourCount].GetContoursOnImagePlane(z);
                     //If length > 1, there could be an island.
                     if (contoursOnPlane.GetLength(0) > 0)
                     {
-                        // will check for the one with the most points, and keep that one.
-                        /*int keeper = 0;
-                        int numPoints = 0;
-                        for (int cont = 0; cont < contoursOnPlane.GetLength(0); cont++)
-                        {
-                            if (contoursOnPlane[cont].GetLength(0) > numPoints)
-                            {
-                                keeper = cont;
-                            }
-                        }*/
                         contoursTemp.Add(contoursOnPlane[0]);
                     }
                 }
-                //MessageBox.Show(contoursTemp[0][0].z.ToString());
+
                 //Now convert this into a double[,] array list
-                
-                for (int i = 0; i < contoursTemp.Count; i++)
+                if (contoursTemp.Count != 0)
                 {
-                    contours[contourCount].Add(new double[contoursTemp[i].GetLength(0), 3]);
-                    for (int j = 0; j < contoursTemp[i].GetLength(0); j++)
+                    for (int i = 0; i < contoursTemp.Count; i++)
                     {
-                        VVector point = image.UserToDicom(contoursTemp[i][j], plan1);
-                        contours[contourCount][i][j, 0] = (point.x);
-                        contours[contourCount][i][j, 1] = (point.y);
-                        contours[contourCount][i][j, 2] = (point.z);
+                        contours[contourCount].Add(new double[contoursTemp[i].GetLength(0), 3]);
+
+                        for (int j = 0; j < contoursTemp[i].GetLength(0); j++)
+                        {
+                            VVector point = image.UserToDicom(contoursTemp[i][j], plan1);
+                            contours[contourCount][i][j, 0] = (point.x);
+                            contours[contourCount][i][j, 1] = (point.y);
+                            contours[contourCount][i][j, 2] = (point.z);
+                        }
                     }
+                    contours[contourCount] = ClosedLooper(contours[contourCount]);
                 }
-                contours[contourCount] = ClosedLooper(contours[contourCount]);
-                contours[contourCount] = IslandRemover(contours[contourCount]);
             }
             return contours;
+
         }
+
+        public static List<Structure> GetStructuresPTV(StructureSet structureSet, PlanSetup plan1, Image image)
+        {
+
+            List<Structure> ROI = new List<Structure>();    //Saving in a list because I only have read access.
+            string organName = "";
+            List<VVector[]> contoursTemp = new List<VVector[]>();
+            foreach (Structure structure in structureSet.Structures)
+            {
+                organName = structure.Name;
+                if (organName.ToLower().Contains("ptv"))
+                {
+                    ROI.Add(structure);
+
+                }
+            }
+            return ROI;
+
+        }
+
 
 
         public static List<List<double[,]>> Chop(List<double[,]> contoursTemp, int numCutsX, int numCutsY, int numCutsZ, string organName)
@@ -302,7 +346,7 @@ namespace VMS.TPS
                 }
             }
             return finalContours;
-       
+
         }
         public static List<List<double[,]>> XChop(List<double[,]> contours, int numCutsX)
         {
@@ -1009,6 +1053,14 @@ namespace VMS.TPS
         }
         public static double[] InterpolateXY(double[] point1, double[] point2, double z)
         {
+            if (point1[2] == z)
+            {
+                return point1;
+            }
+            if (point2[2] == z)
+            {
+                return point2;
+            }
             double xSlope = (point2[0] - point1[0]) / (point2[2] - point1[2]);
             double ySlope = (point2[1] - point1[1]) / (point2[2] - point1[2]);
 
@@ -1225,91 +1277,196 @@ namespace VMS.TPS
             }
             return max;
         }
-        public static double[,] OverlapValues(List<List<double[,]>> parotid, List<List<double[,]>> PTVs)
-        {
 
+        //public bool PolygonCollision(Polygon polygonA,
+        //                      Polygon polygonB, Vector velocity)
+        //{
+        //bool result;
+
+        //int edgeCountA = polygonA.Edges.Count;
+        //int edgeCountB = polygonB.Edges.Count;
+        //float minIntervalDistance = float.PositiveInfinity;
+        //Vector translationAxis = new Vector();
+        //Vector edge;
+
+        //// Loop through all the edges of both polygons
+        //for (int edgeIndex = 0; edgeIndex < edgeCountA + edgeCountB; edgeIndex++)
+        //{
+        //    if (edgeIndex < edgeCountA)
+        //    {
+        //        edge = polygonA.Edges[edgeIndex];
+        //    }
+        //    else
+        //    {
+        //        edge = polygonB.Edges[edgeIndex - edgeCountA];
+        //    }
+
+        //    // ===== 1. Find if the polygons are currently intersecting =====
+
+        //    // Find the axis perpendicular to the current edge
+        //    Vector axis = new Vector(-edge.Y, edge.X);
+        //    axis.Normalize();
+
+        //    // Find the projection of the polygon on the current axis
+        //    float minA = 0; float minB = 0; float maxA = 0; float maxB = 0;
+        //    ProjectPolygon(axis, polygonA, ref minA, ref maxA);
+        //    ProjectPolygon(axis, polygonB, ref minB, ref maxB);
+
+        //    // Check if the polygon projections are currentlty intersecting
+        //    if (IntervalDistance(minA, maxA, minB, maxB) > 0)\
+        //result.Intersect = false;
+
+        //    // ===== 2. Now find if the polygons *will* intersect =====
+
+        //    // Project the velocity on the current axis
+        //    float velocityProjection = axis.DotProduct(velocity);
+
+        //    // Get the projection of polygon A during the movement
+        //    if (velocityProjection < 0)
+        //    {
+        //        minA += velocityProjection;
+        //    }
+        //    else
+        //    {
+        //        maxA += velocityProjection;
+        //    }
+
+        //    // Do the same test as above for the new projection
+        //    float intervalDistance = IntervalDistance(minA, maxA, minB, maxB);
+        //    if (intervalDistance > 0) result.WillIntersect = false;
+
+        //    // If the polygons are not intersecting and won't intersect, exit the loop
+        //    if (!result.Intersect && !result.WillIntersect) break;
+
+        //    // Check if the current interval distance is the minimum one. If so store
+        //    // the interval distance and the current distance.
+        //    // This will be used to calculate the minimum translation vector
+        //    intervalDistance = Math.Abs(intervalDistance);
+        //    if (intervalDistance < minIntervalDistance)
+        //    {
+        //        minIntervalDistance = intervalDistance;
+        //        translationAxis = axis;
+
+        //        Vector d = polygonA.Center - polygonB.Center;
+        //        if (d.DotProduct(translationAxis) < 0)
+        //            translationAxis = -translationAxis;
+        //    }
+        //}
+
+        //// The minimum translation vector
+        //// can be used to push the polygons appart.
+        //if (result.WillIntersect)
+        //    result.MinimumTranslationVector =
+        //           translationAxis * minIntervalDistance;
+
+        //return result;
+        // }
+        public static T[] Populate<T>(T[] arr, T value)
+        {
+            for (int i = 0; i < arr.Length; i++)
+            {
+                arr[i] = value;
+            }
+            return arr;
+        }
+        public static bool[] OverlapValues(List<List<double[,]>> parotid, List<Structure> PTVs, List<Structure> ROI)
+        {
             
-            double[,] overlapValues = new double[parotid.Count, 3];    //second column, points overlapping, third column, total points
-            double x, y, z, minY, maxY, minX, maxX;
-            double[,] polygon;
-            double[] point = new double[3]; //the interpolated contour of the dose voxel z position.
-            int numIn = 0;
+            bool[] overlapValues = new bool[parotid.Count];
+            overlapValues = Populate(overlapValues, false);
+            double x, y, z; //minY, maxY, minX, maxX;
+            x = 0;
+            y = 0;
+            z = 0;
+
             for (int i = 0; i < parotid.Count; i++)
             {
-                overlapValues[i, 2]++;
-                for (int j = 0; j < parotid[i].Count; j++)
+                for (int j = 0; j < parotid[i].Count; j++) //For each contour of each subregion
                 {
-                    for (int k = 0; k <parotid[i][j].GetLength(0); k++)
+                    //Polygon parPoly = new Polygon();
+                    //PointCollection parPoints = new PointCollection();
+                    for (int k = 0; k < parotid[i][j].GetLength(0); k++)
                     {
-                        //get coordinates for the dose voxel
+
                         x = parotid[i][j][k, 0];
                         y = parotid[i][j][k, 1];
                         z = parotid[i][j][k, 2];
+                        VVector point = new VVector(x, y, z);
+                        //parPoints.Add(new Point(x, y));
 
                         //Determine potential subregions for the voxel:
-                        for (int ptv = 0; ptv < PTVs.Count; ptv ++ ) //go through each ptv
+                        for (int ptv = 0; ptv < PTVs.Count; ptv++) //go through each ptv
                         {
-                            for (int ptvCont = 0; ptvCont < PTVs[ptvCont].Count; ptvCont++) // each contour of each ptv
+                            if (PTVs[ptv].IsPointInsideSegment(point))
                             {
-                                if ((PTVs[ptv][ptvCont][0, 2] <= z) && (PTVs[ptv][ptvCont + 1][0, 2] >= z))    //Is this point within z range of this region?
-                                {
-                                //is point within max bounds of the region? 
-                                    minX = Math.Min(min(PTVs[ptv][ptvCont], 0), min(PTVs[ptv][ptvCont+1],0));
-                                    minY = Math.Min(min(PTVs[ptv][ptvCont], 1), min(PTVs[ptv][ptvCont+1], 1));
-                                    maxX = Math.Min(max(PTVs[ptv][ptvCont], 0), max(PTVs[ptv][ptvCont+1], 0));
-                                    maxY = Math.Min(max(PTVs[ptv][ptvCont], 1), max(PTVs[ptv][ptvCont+1], 1));
-                                    if ((x > minX) && (x < maxX) && (y > minY) && (y < maxY))
-                                    {
-                                        //Now interpolate a contour between the two.
-
-                                        polygon = InterpBetweenContours(PTVs[ptv][ptvCont], PTVs[ptv][ptvCont + 1], z);
-                                        //Now point in polygon.
-                                        point[0] = x;
-                                        point[1] = y;
-                                        point[2] = z;
-                                        if (PointInPolygon(polygon, point))
-                                        {
-                                            overlapValues[i, 1]++;
-                                        }
-                                    }
-                                }
-                                continue;
+                                overlapValues[i] = true;
                             }
                         }
-                    }
 
+
+
+                        //if (PTVs[ptv].IsPointInsideSegment()
+
+                        //for (int ptvCont = 0; ptvCont < PTVs[ptv].Count - 1; ptvCont++) // each contour of each ptv
+                        //{
+
+
+                        //    if ((PTVs[ptv][ptvCont].GetLength(0) != 0) && (PTVs[ptv][ptvCont + 1].GetLength(0) != 0))
+                        //    {
+
+                        //        if ((PTVs[ptv][ptvCont][0, 2] <= z) && (PTVs[ptv][ptvCont + 1][0, 2] >= z))    //Is this point within z range of this region?
+                        //        {
+
+                        //            //is point within max bounds of the region? 
+                        //            minX = Math.Min(min(PTVs[ptv][ptvCont], 0), min(PTVs[ptv][ptvCont + 1], 0));
+                        //            minY = Math.Min(min(PTVs[ptv][ptvCont], 1), min(PTVs[ptv][ptvCont + 1], 1));
+                        //            maxX = Math.Min(max(PTVs[ptv][ptvCont], 0), max(PTVs[ptv][ptvCont + 1], 0));
+                        //            maxY = Math.Min(max(PTVs[ptv][ptvCont], 1), max(PTVs[ptv][ptvCont + 1], 1));
+
+                        //            if ((x > minX) && (x < maxX) && (y > minY) && (y < maxY))
+                        //            {
+                        //                ////Now interpolate a contour between the two.
+                        //                //Polygon PTVPoly = new Polygon();
+                        //                //PointCollection PTVPoints = new PointCollection();
+                        //                double [,] ptvSlice = InterpBetweenContours(PTVs[ptv][ptvCont], PTVs[ptv][ptvCont + 1], z);
+
+
+                        //            }
+                        //        }
+                        //    }
+
+
+                        //}
+                    }
 
                 }
             }
-            double[,] finalValues = new double[parotid.Count, 2];
-            for (int i = 0; i < finalValues.GetLength(0); i++)
-            {
-                finalValues[i, 0] = i + 1;
-                finalValues[i, 1] = overlapValues[i, 1] / overlapValues[i, 2];
-            }
+            //Quantify fraction of parotid overlapping:
+            double overlapFrac = (1 -( ROI[1].Volume / ROI[0].Volume)) * 100;
             string output = "";
             string beginSpace = "         ";    //how much space between columns?
             string middleSpace = "     ";
-            output += "Overlapping Fractions:" + System.Environment.NewLine;
+            output += "Overlapping Regions:" + System.Environment.NewLine;
             output += "SubRegion:  |  Overlap:" + System.Environment.NewLine;
             output += "--------------------" + System.Environment.NewLine;
 
-            for (int i = 0; i < finalValues.GetLength(0) - 1; i++)
+            for (int i = 0; i < overlapValues.GetLength(0); i++)
             {
                 if (i == 10)
                 {
                     beginSpace = "        ";
                 }
-                output += beginSpace + (i + 1) + middleSpace + String.Format("{0:0.00}", finalValues[i, 1]) + System.Environment.NewLine;
+                output += beginSpace + (i + 1) + middleSpace + overlapValues[i].ToString() + System.Environment.NewLine;
                 output += "--------------------" + System.Environment.NewLine;
+                
             }
-
+            output += "Percent of Gland overlapping PTV: " + String.Format("{0:0.00}", overlapFrac);
             MessageBox.Show(output);
 
 
-            return finalValues;
+            return overlapValues;
         }
-        
+
         public static double Area(double[,] pointSet)
         {
             int d = pointSet.Length / 3;
@@ -1385,6 +1542,32 @@ namespace VMS.TPS
                 c[i, 2] = newPoint[2];
             }
             return c;
+        }
+        public static Polygon InterpBetweenContours(double[,] a, double[,] b, double zVal, bool makePolygon)
+        //interpolate between contours a and b at the specified z value. (z is between the contours)
+        {
+
+            double x, y, z;
+            double[,] c = new double[a.GetLength(0), 3];
+            Polygon pol = new Polygon();
+            PointCollection pc = new PointCollection();
+
+            for (int i = 0; i < a.GetLength(0); i++)
+            {
+                x = a[i, 0];
+                y = a[i, 1];
+                z = a[i, 2];
+                //Now get idx, the row index in the second closest contour. Then interpolate between the two.
+                int idx = ClosestPoint(x, y, b);
+                double[] point1 = { x, y, z };
+                double[] point2 = { b[idx, 0], b[idx, 1], b[idx, 2] };
+                double[] newPoint = InterpolateXY(point1, point2, zVal);
+                c[i, 0] = newPoint[0];
+                c[i, 1] = newPoint[1];
+                pc.Add(new Point(c[i, 0], c[i, 1]));
+            }
+            pol.Points = pc;
+            return pol;
         }
         public static List<double[,]> IslandRemover(List<double[,]> contours)
         //This function will remove ROI contour islands if they exist.
@@ -1565,15 +1748,15 @@ namespace VMS.TPS
             return b;
         }
 
-        
+
+
+
+
+
+
+
 
 
 
     }
-
-
-
-
-
-
 }
