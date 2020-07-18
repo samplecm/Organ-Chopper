@@ -1,2 +1,4 @@
 # Organ-Chopper
-Organ Chopper is a C# solution that can be used to find a structure in a dicom file, remove islands, chop it into different sections, and calculate doses in different regions
+A collection of C# functions for segmenting dicom structures, removing islands, and computing dose to subsegments. 
+
+Includes a folder for a few plug-in ESAPI scripts for in Varian Eclipse. (Dose checking to organ subsegments, plan checking, etc) 
